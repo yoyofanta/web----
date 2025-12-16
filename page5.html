@@ -2,10 +2,312 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100;300;400&display=swap">
     <title>扎制骨架</title>
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing: border-box;
+        }
+
+        body{
+            overflow: hidden;
+            width:100vw;
+            height: 100vh;
+            background-image:url("素材最终/背景图/背景图.jpg");
+            background-size:cover;
+            background-position:center;
+            font-family:"Noto Sans SC",sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-repeat: no-repeat;
+            padding: 2vw;
+        }
+
+        .step-tabs{
+            display:flex;
+            gap:10vw;
+            margin:8vh 0 3vh 0;
+            align-items: center;
+        }
+
+        .step-tab.hu{
+            width:18vw;
+            height:18vw;
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 50%;
+            background: url("素材最终/风筝制作/资源\ 28@0.5x.webp")no-repeat center;
+            background-size: contain;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor:pointer;
+            transition: all 0.3s;
+        }
+
+        .step-tab.za{
+            width:28vw;
+            height:28vw;
+            max-width: 120px;
+            max-height: 120px;
+            background: url("素材最终/风筝制作/资源\ 27@0.5x.webp")no-repeat center;
+            background-size: contain;
+        }
+
+        .step-tab.hui{
+            width:18vw;
+            height:18vw;
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 50%;
+            background: url("素材最终/风筝制作/资源\ 29@0.5x.webp")no-repeat center;
+            background-size: contain;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor:pointer;
+            transition: all 0.3s;
+        }
+
+        .step-tab.active{
+            background-color: transparent;
+        }
+
+        .skeleton-container{
+            width:90%;
+            height:90%;
+            margin-bottom: 0px;
+            display:flex;
+            justify-content: center;
+            overflow: visable;
+            position: relative;
+        }
+
+        .skeleton-img{
+            width:100%;
+            height:100%;
+            object-fit: contain;
+            display:none;
+            position: absolute;
+            z-index: 10;
+        }
+
+        .skeleton-img[id^="img4-"]{
+            width:170%;
+            height:170%;
+            object-fit: contain;
+        }
+
+        .skeleton-img[id^="img5-"]{
+            width:170%;
+            height:170%;
+            object-fit: contain;
+        }
+
+        .skeleton-img[id^="final"]{
+            width:170%;
+            height:170%;
+            object-fit: contain;
+        }
+
+        .skeleton-img.active{
+            display:block;
+            animation:fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn{
+            from{opacity:0;transform:scale(0.8);}
+            to{opacity:1;transform:scale(1);}
+        }
+
+        .option-box{
+            width:95vw;
+            max-width: 700px;
+            height:20vw;
+            max-height: 120px;
+            background: url("素材最终/风筝制作/资源\ 77@0.5x.webp");
+            background-size: cover;
+            display:flex;
+            align-items: center;
+            justify-content: space-around;
+            padding:1vw;
+            margin:35vw 0;
+            z-index: 1;
+        }
+
+        .option-item{
+            display:flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .option-item img{
+            width:12vw;
+            height:12vw;
+            max-width: 60px;
+            max-height: 60px;
+            object-fit: contain;
+            margin-bottom: 1vw;
+        }
+
+        .option-item span{
+            font-size: 3.5vw;
+            color:#000;
+        }
+
+        .option-item.used{
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .btn-group{
+            display:flex;
+            gap:20vw;
+            position: relative;
+            top: -7vh;
+            z-index: 1;
+        }
+
+        .page-btn{
+            padding: 2vw 5vw;
+            background: url("素材最终/风筝制作/资源\ 89@0.5x.webp");
+            background-size: cover;
+            font-size: 4vw;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.3s;
+            border:none;
+        }
+
+
+        @media screen and (max-width:375px){
+            .step-tabs{
+                gap:3vw;
+            }
+            .option-box{
+                height:25vw;
+            }
+            .btn-group{
+                gap:15vw;
+            }
+        }
+    </style>
 </head>
 <body>
-    
+    <div class="step-tabs">
+        <div class="step-tab za active"></div>
+        <div class="step-tab hu"></div>
+        <div class="step-tab hui"></div>
+    </div>
+
+    <div class ="skeleton-container" id="skeletonContainer">
+        <img src="素材最终/风筝制作/步骤图/竹.PNG" alt="竹子" class="skeleton-img" id="img1">
+        <img src="素材最终/风筝制作/步骤图/刀.PNG" alt="刀具" class="skeleton-img" id="img2">
+        <img src="素材最终/风筝制作/步骤图/锯.PNG" alt="锯子" class="skeleton-img" id="img3">
+
+        <img src="素材最终/风筝制作/步骤图/燕 灯.PNG" alt="燕子灯" class="skeleton-img" id="img4-swallow">
+        <img src="素材最终/风筝制作/步骤图/蝶 灯.PNG" alt="蝴蝶灯" class="skeleton-img" id="img4-butterfly">
+        <img src="素材最终/风筝制作/步骤图/鱼 灯.PNG" alt="鱼灯" class="skeleton-img" id="img4-fish">
+
+        <img src="素材最终/风筝制作/步骤图/燕 绳.PNG" alt="燕子绳" class="skeleton-img" id="img5-swallow">
+        <img src="素材最终/风筝制作/步骤图/蝶 绳.PNG" alt="蝴蝶绳" class="skeleton-img" id="img5-butterfly">
+        <img src="素材最终/风筝制作/步骤图/鱼 绳.PNG" alt="鱼绳" class="skeleton-img" id="img5-fish">
+
+        <img src="骨架/骨架/IMG_2713.PNG" alt="燕子骨架" class="skeleton-img" id="finalSwallow">
+        <img src="骨架/骨架/IMG_2721.PNG" alt="蝴蝶骨架" class="skeleton-img" id="finalButterfly">
+        <img src="骨架/骨架/IMG_2717.PNG" alt="鱼骨架" class="skeleton-img" id="finalFish">
+    </div>
+
+    <div class="option-box">
+        <div class="option-item" data-step="1">
+            <img src="素材最终/风筝制作/资源 33@0.5x.webp" alt="竹图标">
+            <span>竹</span> 
+        </div>
+        <div class="option-item" data-step="2">
+            <img src="素材最终/风筝制作/资源 34@0.5x.webp" alt="刀图标">
+            <span>刀</span> 
+        </div>
+        <div class="option-item" data-step="3">
+            <img src="素材最终/风筝制作/资源 35@0.5x.webp" alt="锯图标">
+            <span>锯</span> 
+        </div>
+        <div class="option-item" data-step="4">
+            <img src="素材最终/风筝制作/资源 36@0.5x.webp" alt="灯图标">
+            <span>灯</span> 
+        </div>
+        <div class="option-item" data-step="5">
+            <img src="素材最终/风筝制作/资源 37@0.5x.webp" alt="绳图标">
+            <span>绳</span> 
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button class="page-btn" id="prevBtn">上一步</button>
+        <button class="page-btn" id="nextBtn" disabled>下一步</button>
+    </div>
+
+    <script>
+        let clickIndex=0;
+        const kiteType=getKiteType();
+        const optionItems=document.querySelectorAll('.option-item');
+        const skeletonImgs=document.querySelectorAll('.skeleton-img');
+        const prevBtn=document.getElementById("prevBtn");
+        const nextBtn=document.getElementById("nextBtn");
+
+        optionItems.forEach(item=>{
+            item.addEventListener('click',function(){
+                const currentStep=parseInt(this.getAttribute('data-step'));
+                if(currentStep!==clickIndex+1)return;
+
+                if(clickIndex>4)return;
+                skeletonImgs.forEach(img => img.classList.remove('active'));
+
+                const step=this.getAttribute('data-step');
+                let targetImgId='';
+
+                if(step==='1')targetImgId='img1';
+                else if(step==='2')targetImgId='img2';
+                else if(step==='3')targetImgId='img3';
+                else if(step==='4')targetImgId=`img4-${kiteType}`;
+                else if(step==='5')targetImgId=`img5-${kiteType}`;
+
+                const targetImg=document.getElementById(targetImgId);
+                if(targetImg)targetImg.classList.add('active');
+                
+                this.classList.add('used');
+                clickIndex++;
+
+                if(clickIndex===5){
+                    skeletonImgs.forEach(img => img.classList.remove('active'));
+                    const finalId=`final${kiteType.charAt(0).toUpperCase()+kiteType.slice(1)}`;
+                    const finalImg=document.getElementById(finalId);
+                    if(finalImg)finalImg.classList.add('active')
+                    nextBtn.disabled=false;
+                }
+            });
+        });
+
+        prevBtn.addEventListener('click', function() {
+            window.location.href = 'page4.html';
+        });
+        nextBtn.addEventListener('click', function() {
+            window.location.href = 'page6.html';
+        });
+
+        function getKiteType() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const type = urlParams.get('type');
+            // 限制类型只能是swallow/butterfly/fish
+            return ['swallow', 'butterfly', 'fish'].includes(type) ? type : 'swallow';
+        }
+    </script>
 </body>
 </html>
