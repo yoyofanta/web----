@@ -84,8 +84,9 @@
             margin-bottom: 0px;
             display:flex;
             justify-content: center;
-            overflow: visable;
+            overflow: visible;
             position: relative;
+            align-items: center;
         }
 
         .skeleton-img{
@@ -95,24 +96,36 @@
             display:none;
             position: absolute;
             z-index: 10;
+            top:0;
+            left:50%;
+            transform: translateX(-50%);
+            right:0;
+            bottom:0;
+            margin:auto;
         }
 
         .skeleton-img[id^="img4-"]{
-            width:170%;
-            height:170%;
+            width:180%;
+            height:180%;
             object-fit: contain;
+            left:50%;
+            transform: translateX(-50%);
         }
 
         .skeleton-img[id^="img5-"]{
-            width:170%;
-            height:170%;
+            width:180%;
+            height:180%;
             object-fit: contain;
+            left:50%;
+            transform: translateX(-50%);
         }
 
         .skeleton-img[id^="final"]{
-            width:170%;
-            height:170%;
+            width:180%;
+            height:180%;
             object-fit: contain;
+            left:50%;
+            transform: translateX(-50%);
         }
 
         .skeleton-img.active{
@@ -121,23 +134,30 @@
         }
 
         @keyframes fadeIn{
-            from{opacity:0;transform:scale(0.8);}
-            to{opacity:1;transform:scale(1);}
+            from{
+                opacity:0;
+                transform:translate(-50%,0) scale(0.8);
+            }
+            to{
+                opacity:1;
+                transform:translate(-50%,0) scale(1);
+            }
         }
 
         .option-box{
-            width:95vw;
-            max-width: 700px;
-            height:20vw;
-            max-height: 120px;
-            background: url("素材最终/风筝制作/资源\ 77@0.5x.webp");
+            width:160vw;
+            max-width: 400px;
+            height:120vw;
+            max-height: 300px;
+            background: url("素材最终/风筝制作/资源\ 80@0.5x.webp");
             background-size: cover;
             display:flex;
             align-items: center;
             justify-content: space-around;
             padding:1vw;
-            margin:35vw 0;
-            z-index: 1;
+            margin:30vw ;
+            position: relative;
+            z-index: 30;
         }
 
         .option-item{
