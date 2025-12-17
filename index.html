@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>Document</title>
     <style>
         *{
@@ -113,7 +115,7 @@
         }
 
         .text-area .text-img{
-            width:1%;
+            width:100%;
             max-width:100px;
             min-width:50px;
         }
@@ -177,6 +179,7 @@
             background-position: center;
             cursor:pointer;
             z-index: 999;
+            transition: transform 0.2s ease;
         }
 
         @keyframes float{
@@ -187,7 +190,7 @@
 
         @keyframes bounce{
             0%,100%{transform:translateY(0);}
-            50%{transform:translasteY(-8px);}
+            50%{transform:translateY(-8px);}
         }
     </style>
 </head>
@@ -214,7 +217,7 @@
     </div>
 
     <script>
-        let satrtY=0;
+        let startY=0;
         document.addEventListener('touchstart',(e)=>{startY=e.touches[0].clientY;});
         document.addEventListener('touchend',(e)=>{
             const endY=e.changedTouches[0].clientY;
@@ -222,17 +225,40 @@
                 window.location.href="page2-3.html";
             }
         });
-        const musicIcon=document.getElementById('musicIcon');
-        let isPlaying=false;
-        const bgMusic=new Audio("素材最终/music.m4a");
-        musicIcon.addEventListener('click',()=>{
-            if(isPlaying){
-                bgMusic.pause();
-            }else{
-                bgMusic.play();
+
+         // 2. 音乐播放逻辑修复（适配移动端）
+        const musicIcon = document.getElementById('musicIcon');
+        let isPlaying = false;
+        // 创建音频实例并设置循环
+        const bgMusic = new Audio("素材最终/music.m4a");
+        bgMusic.loop = true; // 设置循环播放
+        bgMusic.preload = "auto"; // 预加载音频
+
+        // 核心：通过用户点击触发播放（解决移动端限制）
+        musicIcon.addEventListener('click', async () => {
+            try {
+                if (isPlaying) {
+                    bgMusic.pause();
+                    musicIcon.classList.remove('active'); // 移除播放状态样式
+                } else {
+                    // 移动端必须通过用户交互触发play()，添加异常捕获
+                    await bgMusic.play();
+                    musicIcon.classList.add('active'); // 添加播放状态样式
+                }
+                isPlaying = !isPlaying;
+            } catch (err) {
+                console.log("音乐播放失败：", err);
+                // 兼容处理：提示用户再次点击
+                alert("音频播放失败，请再次点击音乐图标或检查音频文件路径");
             }
-            isPlaying=!isPlaying;
         });
+
+        // 兼容：页面触摸时尝试初始化音频（部分浏览器需要）
+        document.addEventListener('touchstart', () => {
+            if (!isPlaying) {
+                bgMusic.load(); // 重新加载音频，确保可播放
+            }
+        }, { once: true }); // 只执行一次
     </script>
     
 </body>

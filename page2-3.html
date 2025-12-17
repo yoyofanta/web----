@@ -26,14 +26,19 @@
             height: 100vh;
             font-family: "Noto Sans SC Regular", sans-serif;
             overflow: hidden;
+            position: relative;
         }
 
+        /* 核心修改1：重构容器布局，取消space-between，避免自动撑开空白 */
         .container {
             position: relative;
             width: 100%;
-            height: 100%;
-            padding: 0.2rem 0;
+            height: 100vh;
+            padding: 0.2rem 0.3rem;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* 改为顶部对齐，不再自动分配空白 */
         }
 
         .bgimg {
@@ -48,109 +53,110 @@
         }
 
         .page-title {
-            font-size: clamp(0.45rem, 4vw, 0.50rem);
+            font-size: clamp(0.5rem, 5vw, 0.50rem);
             color: #333;
-            margin: 0 0 0.1rem 0;
+            margin: 0;
             text-align: left;
             position: absolute;
-            top: 0.8rem;
+            top: 4vh;
             left: 0.6rem;
             z-index: 5;
         }
 
         .sub-title {
-            font-size: clamp(0.12rem, 2vw, 0.18rem);
+            font-size: clamp(0.15rem, 3vw, 0.19rem);
             color: #666;
-            line-height: 0.3rem;
+            line-height: 0.35rem;
             text-align: left;
-            max-width: 80%;
+            max-width: 85%;
             position: absolute;
-            top: 1.7rem;
+            top: 10vh;
             left: 0.6rem;
             z-index: 5;
         }
 
+        /* 核心修改2：固定风筝容器位置，取消flex:1，避免占满剩余空间 */
         .kite-container {
             position: relative;
-            width: 80%;
-            margin: 2.4rem auto 0.15rem;
+            width: 85%;
+            margin: 20vh auto 0; /* 仅保留顶部间距，取消下方自动扩展 */
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 50vh; /* 固定高度，不再动态拉伸 */
         }
 
         .kite-img-wrapper {
             position: relative;
             width: 100%;
-            height: 4.5rem;
+            height: 100%; /* 继承容器固定高度 */
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: visible;
         }
 
-        /* 背景图 - 无动画切换 */
         .kite-bg-img {
             position: absolute;
-            top: 80%;
+            top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(1.5);
+            transform: translate(-50%, -50%) scale(1);
             width: 100%;
             height: 100%;
-            max-width: 155%;
-            max-height: 155%;
+            max-width: 130%;
+            max-height: 130%;
             object-fit: contain;
             object-position: center;
             z-index: 1;
-            opacity: 0.8;
+            opacity: 0.9;
         }
 
-        /* 新增：上下飘动动画（轻轻的幅度） */
         @keyframes float {
             0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); } /* 向上飘10px，幅度轻柔 */
+            50% { transform: translateY(-12px); }
             100% { transform: translateY(0px); }
         }
 
-        /* 风筝图片核心样式 - 优化过渡属性，包含所有动画属性 */
+        /* 核心修改3：完全固定风筝图片位置，所有位置属性写死，不再动态修改 */
         .kite-img {
             position: relative;
-            max-width: 80%;
-            max-height: 80%;
+            max-width: 75%;
+            max-height: 75%;
             cursor: pointer;
-            /* 关键：包含所有需要动画的属性，时长0.4s让由大变小更自然 */
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             object-fit: contain;
             object-position: center;
             z-index: 2;
-            margin-top: 1.6rem;
-            /* 新增：优化动画性能 + 避免transform冲突 */
+            margin-top: 0; /* 固定为0 */
+            transform: translateY(-1vh); /* 固定上移幅度，不再变动 */
             will-change: transform;
             transform-origin: center center;
-            /* 新增：应用飘动动画 - 3秒一个周期，线性循环，动画名称float */
-            animation: float 3s linear infinite;
+            animation: float 3.5s linear infinite;
         }
 
+        /* 修复点击态位置偏移问题 */
         .kite-img:active {
-            transform: translateY(0) scale(0.98); /* 叠加飘动的translate，保证缩放生效 */
+            transform: translateY(-1vh) scale(0.98); /* 匹配固定的上移幅度 -1vh */
         }
 
+        /* 风筝名称位置固定 */
         .kite-name {
             display: block;
             position: absolute;
-            bottom: -1.6rem;
-            font-size: 0.32rem;
+            bottom: 6.5vh;
+            font-size: 0.38rem;
             color: #333;
             z-index: 3;
             transition: opacity 0.3s ease;
+            font-weight: 500;
         }
 
         .arrow {
             position: absolute;
-            top: 70%;
+            top: 50%;
             transform: translateY(-50%);
-            width: 0.4rem;
-            height: 0.4rem;
+            width: 0.5rem;
+            height: 0.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -160,29 +166,32 @@
         }
 
         .arrow-left {
-            left: -0.2rem;
+            left: -0.3rem;
         }
 
         .arrow-right {
-            right: -0.2rem;
+            right: -0.3rem;
         }
 
         .arrow img {
-            width: 0.24rem;
-            height: 0.44rem;
+            width: 0.3rem;
+            height: 0.5rem;
         }
 
+        /* 核心修改4：提示词紧贴风筝容器，顶部margin设为0 */
         .hint-text {
-            font-size: clamp(0.13rem, 2vw, 0.15rem);
+            font-size: clamp(0.15rem, 3vw, 0.17rem);
             color: #333;
-            margin: 2.6rem 0 0.2rem 0;
+            margin: 1vh 0 2vh 0; /* 顶部无间距，仅保留底部小间距 */
             text-align: center;
+            font-weight: 400;
         }
 
+        /* 开始制作按钮位置微调 */
         .start-btn {
-            width: 22%;
+            width: 35%;
             height: auto;
-            margin: 0.4rem auto 0;
+            margin: 2vh auto 8vh;
             cursor: pointer;
             display: block;
             text-decoration: none;
@@ -200,10 +209,10 @@
 
         .music-btn {
             position: absolute;
-            top: 0.8rem;
+            top: 4vh;
             right: 0.8rem;
-            width: 0.35rem;
-            height: 0.35rem;
+            width: 0.45rem;
+            height: 0.45rem;
             cursor: pointer;
         }
 
@@ -213,7 +222,6 @@
             display: block;
         }
 
-        /* 新增：隐藏音频控件 */
         #bgMusic {
             display: none;
         }
@@ -227,10 +235,8 @@
             <img src="images/2/资源 24@0.5x.webp" alt="音乐开关" id="musicIcon">
         </div>
 
-        <!-- 新增：音频标签（核心音乐载体） -->
         <audio id="bgMusic" loop preload="auto">
-            <!-- 替换为你的音乐文件实际路径，比如：images/2/bg-music.mp3 -->
-            <source src="素材最终/music.m4a" type="audio/mpeg">
+            <source src="music.mp3" type="audio/mpeg">
         </audio>
 
         <h1 class="page-title">潍坊风筝介绍</h1>
@@ -312,14 +318,13 @@
         // 状态管理
         let currentIndex = 0;
         let isDetailShow = false;
-        let isMusicPlaying = false; // 初始改为false，符合浏览器自动播放限制
+        let isMusicPlaying = false;
 
         // DOM元素获取
         const kiteImg = document.getElementById("kiteImg");
         const kiteName = document.getElementById("kiteName");
         const musicIcon = document.getElementById("musicIcon");
         const kiteBgImg = document.getElementById("kiteBgImg");
-        // 新增：获取音频元素
         const bgMusic = document.getElementById("bgMusic");
 
         // 预加载所有图片
@@ -332,42 +337,36 @@
             });
         }
 
-        // 切换风筝
+        // 切换风筝（仅修改图片src，不再修改位置属性）
         function changeKite(direction) {
             currentIndex = (currentIndex + direction + KITE_DATA.length) % KITE_DATA.length;
-            isDetailShow = false;
+            isDetailShow = false; // 重置详情图状态
             updateKiteDisplay();
         }
 
-        // 更新风筝显示 - 核心修改：添加由大变小动画
+        // 核心修改5：移除所有位置相关的动态修改，仅更新图片和透明度 + 强制重置尺寸
         function updateKiteDisplay() {
             const currentKite = KITE_DATA[currentIndex];
             kiteName.innerText = currentKite.name;
             kiteName.style.display = "block";
             
-            // 1. 先隐藏图片，同时设置动画初始状态（超大尺寸）
-            kiteImg.style.opacity = '0';
-            kiteImg.style.maxWidth = "150%";  // 动画起始尺寸（和点击后一致）
-            kiteImg.style.maxHeight = "150%";
-            kiteImg.style.marginTop = "2.5rem"; // 起始位置和点击后一致
+            // 关键修复：切换时强制重置图片为默认尺寸和动画
+            kiteImg.style.maxWidth = "75%";   // 恢复默认宽度
+            kiteImg.style.maxHeight = "75%";  // 恢复默认高度
+            kiteImg.style.animation = "float 3.5s linear infinite"; // 恢复飘动动画
             
-            // 2. 切换图片资源
+            kiteImg.style.opacity = '0';
+            
             setTimeout(() => {
                 kiteBgImg.src = currentKite.bgImg;
                 kiteImg.src = currentKite.img;
                 
-                // 3. 显示图片并触发由大变小动画
                 kiteImg.style.opacity = '1';
-                // 过渡到默认尺寸和位置（利用CSS transition自动动画）
-                kiteImg.style.maxWidth = "80%";
-                kiteImg.style.maxHeight = "80%";
-                kiteImg.style.marginTop = "1.6rem";
-                
-                kiteBgImg.style.opacity = '0.8';
+                kiteBgImg.style.opacity = 0.85;
             }, 150);
         }
 
-        // 点击切换详情图（放大+下移）
+        // 仅修改详情图的尺寸和动画，位置与默认图保持一致（固定不动）
         function replaceKiteImg() {
             const currentKite = KITE_DATA[currentIndex];
             kiteImg.style.opacity = 0;
@@ -380,36 +379,29 @@
                 kiteName.style.display = isDetailShow ? "none" : "block";
                 
                 if (isDetailShow) {
-                    kiteImg.style.maxWidth = "150%";
-                    kiteImg.style.maxHeight = "150%";
-                    kiteImg.style.marginTop = "2.55rem";
-                    // 点击放大后暂停飘动动画
+                    kiteImg.style.maxWidth = "100%";
+                    kiteImg.style.maxHeight = "100%";
                     kiteImg.style.animation = "none";
                 } else {
-                    kiteImg.style.maxWidth = "80%";
-                    kiteImg.style.maxHeight = "80%";
-                    kiteImg.style.marginTop = "1.6rem";
-                    // 恢复默认图片后重新开启飘动动画
-                    kiteImg.style.animation = "float 3s linear infinite";
+                    kiteImg.style.maxWidth = "75%";
+                    kiteImg.style.maxHeight = "75%";
+                    kiteImg.style.animation = "float 3.5s linear infinite";
                 }
 
                 kiteImg.style.opacity = 1;
-                kiteBgImg.style.opacity = 0.8;
+                kiteBgImg.style.opacity = 0.85;
             }, 250);
         }
 
-        // 音乐开关 - 新增：控制音乐播放/暂停
+        // 音乐开关
         function toggleMusic() {
             isMusicPlaying = !isMusicPlaying;
-            // 切换图标（原有逻辑保留）
             musicIcon.src = isMusicPlaying 
                 ? "images/2/资源 24@0.5x.webp"
                 : "images/2/资源 24(2)@0.5x.png";
-            // 新增：控制音乐播放/暂停
             if (isMusicPlaying) {
                 bgMusic.play().catch(err => {
                     console.log("播放音乐失败：", err);
-                    // 播放失败时恢复状态和图标
                     isMusicPlaying = false;
                     musicIcon.src = "images/2/资源 24(2)@0.5x.png";
                 });
@@ -421,27 +413,24 @@
         // 绑定事件
         musicIcon.addEventListener("click", toggleMusic);
 
-        // 初始化
+        // 初始化（仅加载图片，不修改位置）
         function init() {
             preloadAllImages();
             const firstKite = KITE_DATA[0];
             kiteName.innerText = firstKite.name;
             kiteBgImg.src = firstKite.bgImg;
-            // 初始化也添加由大变小动画
-            kiteImg.style.maxWidth = "150%";
-            kiteImg.style.maxHeight = "150%";
-            kiteImg.style.marginTop = "2.5rem";
+            
+            // 初始化时强制设置默认尺寸
+            kiteImg.style.maxWidth = "75%";
+            kiteImg.style.maxHeight = "75%";
+            kiteImg.style.animation = "float 3.5s linear infinite";
             kiteImg.style.opacity = 0;
             
             setTimeout(() => {
                 kiteImg.src = firstKite.img;
                 kiteImg.style.opacity = 1;
-                kiteImg.style.maxWidth = "80%";
-                kiteImg.style.maxHeight = "80%";
-                kiteImg.style.marginTop = "1.6rem";
             }, 200);
 
-            // 初始化音乐图标为暂停状态（符合实际）
             musicIcon.src = "images/2/资源 24(2)@0.5x.png";
         }
 
