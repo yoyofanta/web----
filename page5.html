@@ -295,13 +295,14 @@
                 } else if (dataType === 'rope') {
                     // 绳：匹配 燕/蝶/鱼 对应的绳图
                     targetImgId = `img5-${kiteType}`;
+
+                    nextBtn.disabled=false;
+                    nextBtn.classList.add('enable');
                     // 绳步骤后，显示最终骨架 + 解锁下一步
                     setTimeout(()=>{
                         skeletonImgs.forEach(img => img.style.display = 'none');
                         document.getElementById(`final${kiteType.charAt(0).toUpperCase() + kiteType.slice(1)}`).style.display = 'block';
                     }, 500);
-                    nextBtn.disabled=false;
-                    nextBtn.classList.add('enable');
                 } else {
                     // 竹/刀/锯：匹配固定图片
                     targetImgId = item.getAttribute('data-img');
@@ -330,9 +331,8 @@
 
         // 7. 下一步：完成扎制，跳转到糊纸页面（携带骨架类型参数）
         nextBtn.addEventListener('click', () => {
-            if (clickedSteps.has(totalSteps)) {
-                window.location.href = `page6.html?type=${kiteType}`;
-            }
+            console.log('第五页传递的kiteType:',kiteType); 
+            window.location.href = `page6.html?type=${kiteType}`;
         });
 
         // 8. 音乐开关功能（修复原代码变量命名错误）
