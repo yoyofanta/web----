@@ -363,6 +363,9 @@
         let selectedPattern = '';
         const selectedLayers = new Set();
 
+        const stepOrder = ['pattern', 'face', 'wing', 'body'];
+        let currentMaxStep = 0;
+
         // 2. 资源路径映射表：【动物-纹样-部位-颜色】 四层强关联
         // 每种动物3纹样，每纹样3部位，每部位3颜色，完全一一对应
         const resourceMap = {
@@ -488,14 +491,14 @@
                 bat: {
                     pattern: "素材最终/风筝/椋庣瓭/IMG_2703.PNG",
                     face: {
-                        feihong: "素材最终/彩绘/鱼/蝙蝠纹/面_绯红.webp",
-                        baolan: "素材最终/彩绘/鱼/蝙蝠纹/面_宝蓝.webp",
-                        yingtao: "素材最终/彩绘/鱼/蝙蝠纹/面_樱桃.webp"
+                        feihong: "素材最终/风筝/2222/IMG_2836.PNG",
+                        baolan: "素材最终/风筝/2222/IMG_2835.PNG",
+                        yingtao: "素材最终/风筝/2222/IMG_2834.PNG"
                     },
                     wing: {
-                        feihong: "素材最终/彩绘/鱼/蝙蝠纹/翅_绯红.webp",
-                        baolan: "素材最终/彩绘/鱼/蝙蝠纹/翅_宝蓝.webp",
-                        yingtao: "素材最终/彩绘/鱼/蝙蝠纹/翅_樱桃.webp"
+                        feihong: "素材最终/风筝/2222/IMG_2705.PNG",
+                        baolan: "素材最终/风筝/2222/IMG_2706.PNG",
+                        yingtao: "素材最终/风筝/2222/IMG_2707.PNG"
                     },
                     body: {
                         qihei: "素材最终/风筝/椋庣瓭/IMG_2705.PNG",
@@ -524,9 +527,9 @@
                 lion: {
                     pattern: "素材最终/风筝/椋庣瓭/IMG_2704.PNG",
                     face: {
-                        feihong: "素材最终/彩绘/鱼/狮头纹/面_绯红.webp",
-                        baolan: "素材最终/彩绘/鱼/狮头纹/面_宝蓝.webp",
-                        yingtao: "素材最终/彩绘/鱼/狮头纹/面_樱桃.webp"
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2843.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2845.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2844.PNG"
                     },
                     wing: {
                         feihong: "素材最终/风筝/椋庣瓭/IMG_2696.PNG",
@@ -534,9 +537,9 @@
                         yingtao: "素材最终/风筝/椋庣瓭/IMG_2702.PNG"
                     },
                     body: {
-                        feihong: "素材最终/彩绘/鱼/狮头纹/身_漆黑.webp",
-                        baolan: "素材最终/彩绘/鱼/狮头纹/身_精白.webp",
-                        yingtao: "素材最终/彩绘/鱼/狮头纹/身_缟色.webp"
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2840.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2841.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2842.PNG"
                     }
                 }
             }
@@ -551,9 +554,18 @@
         const optionBox = document.getElementById('optionBox');
         fourthOptionItems.forEach(item => {
             item.addEventListener('click', () => {
+                const partType = item.getAttribute('data-type');
+                const currentStepIndex = stepOrder.indexOf(partType);
+
+                if (currentStepIndex > currentMaxStep && currentStepIndex !== 0) {
+                    const prevStepName = stepOrder[currentMaxStep];
+                    const stepText=prevStepName==='pattern' ? '纹样' : prevStepName === 'face' ? '面' : '翅';
+                    alert(`请先完成【${stepText}】步骤`);
+                    return;
+        }
+
                 fourthOptionItems.forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
-                const partType = item.getAttribute('data-type');
 
                 // 清空选型框 + 切换类名
                 optionBox.innerHTML = '';
@@ -598,7 +610,7 @@
         // 6. 渲染颜色选项：根据部位显示对应颜色
         function renderColorOptions(partType) {
             let colorHtml = '';
-            if (partType === 'face' || partType === 'wing' ||(partType ==='body' && kiteType==='fish')) {
+            if (partType === 'face' || partType === 'wing' ||(partType ==='body' && kiteType==='fish' && selectedPattern === 'lion')) {
                 // 面/翅颜色：绯红/宝蓝/樱桃
                 colorHtml = `
                     <div class="option-item" data-value="feihong">
@@ -643,28 +655,57 @@
                     const selectValue = item.getAttribute('data-value');
                     const targetLayer = document.getElementById(`${partType}-layer`);
 
-                    // 加载对应资源
                     if (partType === 'pattern') {
-                        // 纹样层：动物-纹样-pattern
-                        targetLayer.src = resourceMap[kiteType][selectValue].pattern;
+                // 1. 记录新选中的纹样
                         selectedPattern = selectValue;
-                    } else {
-                        // 面/翅/身层：动物-选中纹样-部位-颜色
-                        targetLayer.src = resourceMap[kiteType][selectedPattern][partType][selectValue];
-                    }
-                    // 显示当前图层
-                    targetLayer.style.display = 'block';
-                    // 标记已选图层
-                    selectedLayers.add(partType);
+                // 2. 加载新纹样图层
+                        targetLayer.src = resourceMap[kiteType][selectValue].pattern;
+                        targetLayer.style.display = 'block';
 
-                    // 四层全选：解锁去放飞
-                    if (selectedLayers.has('pattern') && selectedLayers.has('face') && selectedLayers.has('wing') && selectedLayers.has('body')) {
-                        document.getElementById('flyBtn').classList.add('enable');
-                    }
-                });
-            });
-        }
+                        const faceLayer = document.getElementById('face-layer');
+                        const wingLayer = document.getElementById('wing-layer');
+                        const bodyLayer = document.getElementById('body-layer');
+                        faceLayer.src = '';
+                        faceLayer.style.display = 'none';
+                        wingLayer.src = '';
+                        wingLayer.style.display = 'none';
+                        bodyLayer.src = '';
+                        bodyLayer.style.display = 'none';
 
+                // 3. 关键：更新步骤锁 + 重置已选集合（只保留纹样）
+                        currentMaxStep = 1; // 直接解锁“面”步骤（索引1）
+                        selectedLayers.clear();
+                        selectedLayers.add('pattern'); // 标记纹样已完成
+
+                // 4. 重置四级选项选中状态（只保留纹样选中）
+                        fourthOptionItems.forEach((i, idx) => {
+                            i.classList.remove('active');
+                            if (idx === 0) i.classList.add('active');
+                        });
+
+                // 5. 禁用去放飞按钮
+                        document.getElementById('flyBtn').classList.remove('enable');
+                        return; // 结束当前逻辑
+                    }
+
+                    const currentStepIdx = stepOrder.indexOf(partType);
+                    if (currentStepIdx >= currentMaxStep) {
+                        currentMaxStep = currentStepIdx + 1; // 解锁下一级步骤
+                    }
+
+            // ========== 原有逻辑保留 ==========
+            // 加载面/翅/身图层
+                targetLayer.src = resourceMap[kiteType][selectedPattern][partType][selectValue];
+                targetLayer.style.display = 'block';
+            // 标记已选图层 & 更新步骤锁
+                selectedLayers.add(partType);
+            // 四层全选解锁去放飞
+                if (selectedLayers.has('pattern') && selectedLayers.has('face') && selectedLayers.has('wing') && selectedLayers.has('body')) {
+                    document.getElementById('flyBtn').classList.add('enable');
+            }
+        });
+    });
+}
         // 初始绑定纹样点击事件
         bindOptionClick();
 
@@ -678,7 +719,7 @@
         });
 
         // 9. 音乐开关功能
-        const bgMusic = new Audio("");
+        const bgMusic = new Audio("素材最终/music.m4a");
         bgMusic.loop = true;
         let isMusicPlaying = false;
         document.getElementById('musicIcon').addEventListener('click', () => {
