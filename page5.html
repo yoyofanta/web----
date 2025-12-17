@@ -300,6 +300,7 @@
                         skeletonImgs.forEach(img => img.style.display = 'none');
                         document.getElementById(`final${kiteType.charAt(0).toUpperCase() + kiteType.slice(1)}`).style.display = 'block';
                     }, 500);
+                    nextBtn.disabled=false;
                     nextBtn.classList.add('enable');
                 } else {
                     // 竹/刀/锯：匹配固定图片
