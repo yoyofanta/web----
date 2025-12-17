@@ -25,6 +25,9 @@
             align-items: center;
             justify-content: center;
             background-repeat: no-repeat;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
         }
         .music-icon{
             position:absolute;
@@ -38,6 +41,8 @@
             background-position: center;
             cursor:pointer;
             z-index: 999;
+            transition: transform 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .step-tabs{
@@ -59,7 +64,7 @@
             align-items: center;
             justify-content: center;
             cursor:pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
 
         .step-tab.za{
@@ -83,7 +88,7 @@
             align-items: center;
             justify-content: center;
             cursor:pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
 
         .step-tab.active{
@@ -112,6 +117,12 @@
             left:50%;
             top:50%;
             transform: translate(-50%,-50%);
+            transition: opacity 0.3s ease-in-out;
+            opacity: 1;
+        }
+
+        .skeleton-img.fade-out{
+            opacity: 0;
         }
 
         .option-box{
@@ -148,6 +159,7 @@
             transition: opacity 0.3s;
             pointer-events: none;
             background: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .option-item.available{
@@ -190,6 +202,10 @@
             color: #000;
             cursor: pointer;
             border:none;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+            opacity: 0.5;
+            pointer-events: none;
         }
 
         .page-btn.enable{
@@ -205,10 +221,35 @@
             .btn-group{
                 gap:18vw;
             }
+            .music-icon{
+                width:28px;
+                height:28px;
+                top:20px;
+                right:20px;
+            }
+        }
+
+        @media screen and (min-width:768px){
+            .option-text, .option-box::before, .page-btn{
+                font-size: 16px;
+            }
+            .option-icon{
+                width:50px;
+                height:50px;
+            }
+            .step-tabs{
+                gap:50px;
+            }
+            .btn-group{
+                gap:120px;
+            }
         }
     </style>
 </head>
 <body>
+    <audio id="bgMusic" loop preload="metadata">
+        <source src="素材最终/music.m4a" type="audio/mpeg">
+    </audio>
     <div class ="music-icon" id="musicIcon"></div>
     <div class="step-tabs">
         <div class="step-tab za active"></div>
@@ -263,92 +304,143 @@
     </div>
 
     <script>
-        let clickIndex=0;
-        const urlParams = new URLSearchParams(window.location.search);
-        const kiteType=urlParams.get('type') || 'swallow';
-        const optionItems=document.querySelectorAll('.option-item');
-        const skeletonImgs=document.querySelectorAll('.skeleton-img');
-        const prevBtn=document.getElementById("prevBtn");
-        const nextBtn=document.getElementById("nextBtn");
-        const musicIcon=document.getElementById("musicIcon");
+        document.addEventListener('DOMContentLoaded', function() {
+            let clickIndex=0;
+            const urlParams = new URLSearchParams(window.location.search);
+            const kiteType=urlParams.get('type') || 'swallow';
+            const optionItems=document.querySelectorAll('.option-item');
+            const skeletonImgs=document.querySelectorAll('.skeleton-img');
+            const prevBtn=document.getElementById("prevBtn");
+            const nextBtn=document.getElementById("nextBtn");
+            const musicIcon=document.getElementById("musicIcon");
+            const bgMusic=document.getElementById("bgMusic");
 
-        let currentStep=0;
-        const totalSteps=5;
-        const clickedSteps=new Set();
+            let currentStep=0;
+            const totalSteps=5;
+            const clickedSteps=new Set();
+            let isMusicPlaying = false;
 
-        optionItems[0].classList.add('available');
-        prevBtn.classList.add('enable');
+        // 初始化：第一个选项可用，上一步按钮启用
+            optionItems[0].classList.add('available');
+            prevBtn.classList.add('enable');
 
-        optionItems.forEach((item,index)=>{
-            item.addEventListener('click',()=>{
-            const step = parseInt(item.getAttribute('data-step'));
-                clickedSteps.add(step);
+            // 选项点击逻辑（优化流畅度）
+            optionItems.forEach((item,index)=>{
+                item.addEventListener('click',()=>{
+                    const step = parseInt(item.getAttribute('data-step'));
+                    clickedSteps.add(step);
 
-                skeletonImgs.forEach(img => img.style.display = 'none');
+                    // 图片渐变切换（优化视觉流畅度）
+                    skeletonImgs.forEach(img => {
+                        img.classList.add('fade-out');
+                    });
 
-                let targetImgId = '';
-                const dataType = item.getAttribute('data-type');
-                // 区分固定图和动态图（灯/绳按骨架类型切换）
-                if (dataType === 'lamp') {
-                    // 灯：匹配 燕/蝶/鱼 对应的灯图
-                    targetImgId = `img4-${kiteType}`;
-                } else if (dataType === 'rope') {
-                    // 绳：匹配 燕/蝶/鱼 对应的绳图
-                    targetImgId = `img5-${kiteType}`;
+                    setTimeout(() => {
+                        // 隐藏所有图片
+                        skeletonImgs.forEach(img => {
+                            img.style.display = 'none';
+                            img.classList.remove('fade-out');
+                        });
 
-                    nextBtn.disabled=false;
-                    nextBtn.classList.add('enable');
-                    // 绳步骤后，显示最终骨架 + 解锁下一步
-                    setTimeout(()=>{
-                        skeletonImgs.forEach(img => img.style.display = 'none');
-                        document.getElementById(`final${kiteType.charAt(0).toUpperCase() + kiteType.slice(1)}`).style.display = 'block';
-                    }, 500);
-                } else {
-                    // 竹/刀/锯：匹配固定图片
-                    targetImgId = item.getAttribute('data-img');
-                }
+                        let targetImgId = '';
+                        const dataType = item.getAttribute('data-type');
+                        
+                        // 区分固定图和动态图（灯/绳按骨架类型切换）
+                        if (dataType === 'lamp') {
+                            targetImgId = `img4-${kiteType}`;
+                        } else if (dataType === 'rope') {
+                            targetImgId = `img5-${kiteType}`;
+                            // 启用下一步按钮
+                            nextBtn.disabled=false;
+                            nextBtn.classList.add('enable');
+                            // 绳步骤后，延迟显示最终骨架
+                            setTimeout(()=>{
+                                skeletonImgs.forEach(img => img.style.display = 'none');
+                                const finalImg = document.getElementById(`final${kiteType.charAt(0).toUpperCase() + kiteType.slice(1)}`);
+                                if(finalImg) {
+                                    finalImg.style.display = 'block';
+                                }
+                            }, 500);
+                        } else {
+                            targetImgId = item.getAttribute('data-img');
+                        }
 
-                // 显示当前步骤的.webp图
-                const targetImg = document.getElementById(targetImgId);
-                if (targetImg) targetImg.style.display = 'block';
+                        // 显示当前步骤图片
+                        const targetImg = document.getElementById(targetImgId);
+                        if (targetImg) {
+                            targetImg.style.display = 'block';
+                        }
+                    }, 300);
 
-                // 标记当前选项为已使用，解锁下一个选项
-                item.classList.add('used');
-                item.classList.remove('available');
-                currentStep = step;
+                    // 标记当前选项为已使用，解锁下一个选项
+                    item.classList.add('used');
+                    item.classList.remove('available');
+                    currentStep = step;
 
-                // 解锁下一个选项（非最后一步时）
-                if (index < totalSteps - 1) {
-                    optionItems[index + 1].classList.add('available');
+                    // 解锁下一个选项（非最后一步时）
+                    if (index < totalSteps - 1) {
+                        optionItems[index + 1].classList.add('available');
+                    }
+                });
+            });
+
+            // 上一步：返回第四页选择骨架页面
+            prevBtn.addEventListener('click', () => {
+                // 页面跳转前渐变效果
+                document.body.style.opacity = 0;
+                document.body.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    window.location.href = 'page4.html';
+                }, 300);
+            });
+
+            // 下一步：完成扎制，跳转到糊纸页面
+            nextBtn.addEventListener('click', () => {
+                console.log('第五页传递的kiteType:',kiteType); 
+                // 页面跳转前渐变效果
+                document.body.style.opacity = 0;
+                document.body.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    window.location.href = `page6.html?type=${kiteType}`;
+                }, 300);
+            });
+
+            // 完善音乐控制功能
+            musicIcon.addEventListener('click', () => {
+                try {
+                    if (isMusicPlaying) {
+                        bgMusic.pause();
+                    } else {
+                        // 移动端兼容：用户交互触发播放
+                        bgMusic.play().catch(err => {
+                            console.log('音乐播放需要用户交互:', err);
+                            bgMusic.play();
+                        });
+                    }
+                    isMusicPlaying = !isMusicPlaying;
+                } catch (e) {
+                    console.log('音乐控制异常:', e);
                 }
             });
-        });
 
-        // 6. 上一步：返回第四页选择骨架页面
-        prevBtn.addEventListener('click', () => {
-            window.location.href = 'page4.html';
-        });
+            // 页面离开时暂停音乐
+            window.addEventListener('beforeunload', function() {
+                if (bgMusic) {
+                    bgMusic.pause();
+                }
+            });
 
-        // 7. 下一步：完成扎制，跳转到糊纸页面（携带骨架类型参数）
-        nextBtn.addEventListener('click', () => {
-            console.log('第五页传递的kiteType:',kiteType); 
-                window.location.href = `page6.html?type=${kiteType}`;
-        });
+            // 图片加载错误处理
+            skeletonImgs.forEach(img => {
+                img.onerror = function() {
+                    this.style.display = 'none';
+                    console.log(`图片加载失败: ${this.src}`);
+                }
+            });
 
-        // 8. 音乐开关功能（修复原代码变量命名错误）
-        const bgMusic = new Audio(""); // 替换为你的音乐路径
-        bgMusic.loop = true;
-        let isMusicPlaying = false; // 修复变量名错误
-
-        musicIcon.addEventListener('click', () => {
-            if (isMusicPlaying) {
-                bgMusic.pause();
-            } else {
-                bgMusic.play();
-            }
-            isMusicPlaying = !isMusicPlaying;
+            // 禁止页面拖拽
+            document.addEventListener('dragstart', (e) => e.preventDefault());
         });
-                
     </script>
 </body>
 </html>

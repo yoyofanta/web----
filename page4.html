@@ -25,6 +25,9 @@
             align-items: center;
             justify-content: center;
             background-repeat: no-repeat;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
         .title-box{
@@ -46,8 +49,8 @@
         }
 
         .skeleton-container{
-            width:50%;
-            height:50%;
+            width:80%;
+            height:65%;
             margin-bottom: 10px;
             justify-content: center;
             display: flex;
@@ -55,14 +58,16 @@
         }
 
         .skeleton-img{
-            width:85%;
-            height:85%;
+            width:95%;
+            height:95%;
             object-fit: contain;
             display:block;
             position: absolute;
             top:0;
             left:0;
             margin:auto;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 1;
         }
 
         .options{
@@ -87,8 +92,9 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s ease-out;
             background: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .option-item.active{
@@ -127,6 +133,8 @@
             cursor:pointer;
             opacity: 0.5;
             pointer-events: none;
+            transition: opacity 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .next-btn.enable{
@@ -146,11 +154,13 @@
             background-position: center;
             cursor:pointer;
             z-index: 999;
+            transition: transform 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
         @media screen and (min-width:768px){
             body{
-                padding-top: 50px;
+                padding-top: 30px;
             }
             .music-icon{
                 width:40px;
@@ -161,13 +171,14 @@
             .title-box{
                 height:60px;
                 max-width:300px;
+                margin-top: 20px;
             }
             .title-text{
                 font-size:22pt;
             }
             .skeleton-container{
-                height:400px;
-                max-width:600px;
+                height:500px;
+                max-width:700px;
             }
             .options{
                 height:180px;
@@ -199,12 +210,15 @@
     </style>
 </head>
 <body>
+        <audio id="bgMusic" loop preload="metadata">
+        <source src="素材最终/music.m4a" type="audio/mpeg">
+        </audio>
         <div class="music-icon" id="musicIcon"></div>
         <div class ="title-box">
             <span class ="title-text">选择骨架形状</span>
         </div>
         <div class="skeleton-container">
-            <img src="骨架/骨架/IMG_2714.PNG" alt="燕子骨架" class="skeletonimg" id="skeletonImg">
+            <img src="骨架/骨架/IMG_2714.PNG" alt="燕子骨架" class="skeleton-img" id="skeletonImg">
         </div>
         <div class="options">
             <div class="option-item"  data-type="swallow" data-skeleton="骨架/骨架/IMG_2714.PNG" data-icon="素材最终/风筝制作/资源\ 73@0.5x.webp">
@@ -225,23 +239,33 @@
         </div>
 
     <script>
-        const optionItems = document.querySelectorAll('.option-item');
-        const skeletonImg = document.getElementById('skeletonImg');
-        const nextBtn = document.getElementById('nextBtn');
-        let selectedType='';
+        document.addEventListener('DOMContentLoaded', function() {
+            const optionItems = document.querySelectorAll('.option-item');
+            const skeletonImg = document.getElementById('skeletonImg');
+            const nextBtn = document.getElementById('nextBtn');
+            let selectedType='';
 
-        optionItems.forEach(item => {
-            item.addEventListener('click',() =>{
-                optionItems.forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
+            // 优化骨架切换流畅度
+            optionItems.forEach(item => {
+                item.addEventListener('click',() =>{
+                    // 先隐藏当前图片，再切换（优化视觉流畅度）
+                    skeletonImg.style.opacity = 0;
+                    
+                    optionItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
 
-                const skeletonSrc=item.getAttribute('data-skeleton');
-                skeletonImg.src=skeletonSrc;
-                selectedType=item.getAttribute('data-type');
+                    const skeletonSrc=item.getAttribute('data-skeleton');
+                    // 图片加载完成后显示，避免闪烁
+                    skeletonImg.onload = function() {
+                        skeletonImg.style.opacity = 1;
+                    }
+                    skeletonImg.src=skeletonSrc;
+                    selectedType=item.getAttribute('data-type');
 
-                nextBtn.classList.add('enable');
+                    nextBtn.classList.add('enable');
+                });
             });
-        });
+
 
 
         document.getElementById('nextBtn').addEventListener('click', () =>{
@@ -250,12 +274,41 @@
             }
         });
 
-        const musicIcon = document.getElementById('musicIcon');
-        let isPlaying = false;
-        musicIcon.addEventListener('click', () => {
-            if(isPlaying) bgMusic.pause();
-            else bgMusic.play();
-            isPlaying = !isPlaying;
+        // 完善音乐控制功能（不修改图标样式）
+            const musicIcon = document.getElementById('musicIcon');
+            const bgMusic = document.getElementById('bgMusic');
+            let isPlaying = false;
+
+            // 音乐播放/暂停核心逻辑
+            musicIcon.addEventListener('click', () => {
+                try {
+                    if(isPlaying) {
+                        bgMusic.pause();
+                    } else {
+                        // 移动端需要用户交互触发播放，添加兼容处理
+                        bgMusic.play().catch(err => {
+                            console.log('音乐播放需要用户交互:', err);
+                            // 降级处理：再次尝试播放
+                            bgMusic.play();
+                        });
+                    }
+                    isPlaying = !isPlaying;
+                } catch (e) {
+                    console.log('音乐控制异常:', e);
+                }
+            });
+
+            // 页面离开时暂停音乐
+            window.addEventListener('beforeunload', function() {
+                if (bgMusic) {
+                    bgMusic.pause();
+                }
+            });
+
+            // 优化图片加载失败处理
+            skeletonImg.onerror = function() {
+                this.style.opacity = 1; // 确保即使加载失败也显示占位
+            }
         });
     </script>
     

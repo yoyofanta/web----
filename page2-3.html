@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>潍坊风筝介绍</title>
+    <style>
+        /* 全局样式重置 & 基础配置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            user-select: none;
+        }
+
+        html {
+            font-size: calc(100vw / 7.5);
+            max-font-size: 100px;
+            min-font-size: 20px;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            font-family: "Noto Sans SC Regular", sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: 0.2rem 0;
+            text-align: center;
+        }
+
+        .bgimg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .page-title {
+            font-size: clamp(0.45rem, 4vw, 0.50rem);
+            color: #333;
+            margin: 0 0 0.1rem 0;
+            text-align: left;
+            position: absolute;
+            top: 0.8rem;
+            left: 0.6rem;
+            z-index: 5;
+        }
+
+        .sub-title {
+            font-size: clamp(0.12rem, 2vw, 0.18rem);
+            color: #666;
+            line-height: 0.3rem;
+            text-align: left;
+            max-width: 80%;
+            position: absolute;
+            top: 1.7rem;
+            left: 0.6rem;
+            z-index: 5;
+        }
+
+        .kite-container {
+            position: relative;
+            width: 80%;
+            margin: 2.4rem auto 0.15rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .kite-img-wrapper {
+            position: relative;
+            width: 100%;
+            height: 4.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+        }
+
+        /* 背景图 - 无动画切换 */
+        .kite-bg-img {
+            position: absolute;
+            top: 80%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1.5);
+            width: 100%;
+            height: 100%;
+            max-width: 155%;
+            max-height: 155%;
+            object-fit: contain;
+            object-position: center;
+            z-index: 1;
+            opacity: 0.8;
+        }
+
+        /* 新增：上下飘动动画（轻轻的幅度） */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); } /* 向上飘10px，幅度轻柔 */
+            100% { transform: translateY(0px); }
+        }
+
+        /* 风筝图片核心样式 - 优化过渡属性，包含所有动画属性 */
+        .kite-img {
+            position: relative;
+            max-width: 80%;
+            max-height: 80%;
+            cursor: pointer;
+            /* 关键：包含所有需要动画的属性，时长0.4s让由大变小更自然 */
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            object-fit: contain;
+            object-position: center;
+            z-index: 2;
+            margin-top: 1.6rem;
+            /* 新增：优化动画性能 + 避免transform冲突 */
+            will-change: transform;
+            transform-origin: center center;
+            /* 新增：应用飘动动画 - 3秒一个周期，线性循环，动画名称float */
+            animation: float 3s linear infinite;
+        }
+
+        .kite-img:active {
+            transform: translateY(0) scale(0.98); /* 叠加飘动的translate，保证缩放生效 */
+        }
+
+        .kite-name {
+            display: block;
+            position: absolute;
+            bottom: -1.6rem;
+            font-size: 0.32rem;
+            color: #333;
+            z-index: 3;
+            transition: opacity 0.3s ease;
+        }
+
+        .arrow {
+            position: absolute;
+            top: 70%;
+            transform: translateY(-50%);
+            width: 0.4rem;
+            height: 0.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            background-color: transparent;
+        }
+
+        .arrow-left {
+            left: -0.2rem;
+        }
+
+        .arrow-right {
+            right: -0.2rem;
+        }
+
+        .arrow img {
+            width: 0.24rem;
+            height: 0.44rem;
+        }
+
+        .hint-text {
+            font-size: clamp(0.13rem, 2vw, 0.15rem);
+            color: #333;
+            margin: 2.6rem 0 0.2rem 0;
+            text-align: center;
+        }
+
+        .start-btn {
+            width: 22%;
+            height: auto;
+            margin: 0.4rem auto 0;
+            cursor: pointer;
+            display: block;
+            text-decoration: none;
+        }
+
+        .start-btn img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .start-btn:active {
+            opacity: 0.9;
+        }
+
+        .music-btn {
+            position: absolute;
+            top: 0.8rem;
+            right: 0.8rem;
+            width: 0.35rem;
+            height: 0.35rem;
+            cursor: pointer;
+        }
+
+        .music-btn img {
+            width: 120%;
+            height: 120%;
+            display: block;
+        }
+
+        /* 新增：隐藏音频控件 */
+        #bgMusic {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="images/2/background.jpg" class="bgimg" alt="背景图">
+        
+        <div class="music-btn">
+            <img src="images/2/资源 24@0.5x.webp" alt="音乐开关" id="musicIcon">
+        </div>
+
+        <!-- 新增：音频标签（核心音乐载体） -->
+        <audio id="bgMusic" loop preload="auto">
+            <!-- 替换为你的音乐文件实际路径，比如：images/2/bg-music.mp3 -->
+            <source src="素材最终/music.m4a" type="audio/mpeg">
+        </audio>
+
+        <h1 class="page-title">潍坊风筝介绍</h1>
+        <p class="sub-title">
+            潍坊，被誉为"世界风筝之都"<br>
+            于2006年被列入国家级非物质文化遗产名录
+        </p>
+
+        <div class="kite-container">
+            <div class="arrow arrow-left" onclick="changeKite(-1)">
+                <img src="images/2/资源 12(1)@0.5x.png" alt="上一个">
+            </div>
+            
+            <div class="kite-img-wrapper">
+                <img src="" class="kite-bg-img" alt="风筝背景" id="kiteBgImg">
+                <div class="kite-name" id="kiteName">板子风筝</div>
+                <img src="" class="kite-img" id="kiteImg" onclick="replaceKiteImg()">
+            </div>
+            
+            <div class="arrow arrow-right" onclick="changeKite(1)">
+                <img src="images/2/资源 12(2)@0.5x.png" alt="下一个">
+            </div>
+        </div>
+
+        <p class="hint-text">点击图片了解详情</p>
+
+        <a href="page4.html" class="start-btn">
+            <img src="images/2/资源 10@0.5x.webp" alt="开始制作">
+        </a>
+    </div>
+
+    <script>
+        // 风筝数据
+        const KITE_DATA = [
+            {
+                name: "板子风筝",
+                img: "images/2/板子.png",
+                detailImg: "images/2/资源板子.png",
+                bgImg: "images/2/资源 70@0.5x.webp",
+                detailBgImg: "images/2/资源 71@0.5x.webp"
+            },
+            {
+                name: "串形风筝",
+                img: "images/2/串形.png",
+                detailImg: "images/2/资源串形.png",
+                bgImg: "images/2/资源 70@0.5x.webp",
+                detailBgImg: "images/2/资源 71@0.5x.webp"
+            },
+            {
+                name: "桶形风筝",
+                img: "images/2/桶形.png",
+                detailImg: "images/2/资源桶形.png",
+                bgImg: "images/2/资源 70@0.5x.webp",
+                detailBgImg: "images/2/资源 71@0.5x.webp"
+            },
+            {
+                name: "硬翅风筝",
+                img: "images/2/硬翅.png",
+                detailImg: "images/2/资源硬翅.png",
+                bgImg: "images/2/资源 70@0.5x.webp",
+                detailBgImg: "images/2/资源 71@0.5x.webp"
+            },
+            {
+                name: "软翅风筝",
+                img: "images/2/软翅.png",
+                detailImg: "images/2/资源软翅.png",
+                bgImg: "images/2/资源 70@0.5x.webp",
+                detailBgImg: "images/2/资源 71@0.5x.webp"
+            },
+            {
+                name: "自由风筝",
+                img: "images/2/自由.png",
+                detailImg: "images/2/资源自由.png",
+                bgImg: "images/2/资源 70@0.5x.webp",
+                detailBgImg: "images/2/资源 71@0.5x.webp"
+            }
+        ];
+
+        // 状态管理
+        let currentIndex = 0;
+        let isDetailShow = false;
+        let isMusicPlaying = false; // 初始改为false，符合浏览器自动播放限制
+
+        // DOM元素获取
+        const kiteImg = document.getElementById("kiteImg");
+        const kiteName = document.getElementById("kiteName");
+        const musicIcon = document.getElementById("musicIcon");
+        const kiteBgImg = document.getElementById("kiteBgImg");
+        // 新增：获取音频元素
+        const bgMusic = document.getElementById("bgMusic");
+
+        // 预加载所有图片
+        function preloadAllImages() {
+            KITE_DATA.forEach(kite => {
+                [kite.bgImg, kite.detailBgImg, kite.img, kite.detailImg].forEach(src => {
+                    const img = new Image();
+                    img.src = src;
+                });
+            });
+        }
+
+        // 切换风筝
+        function changeKite(direction) {
+            currentIndex = (currentIndex + direction + KITE_DATA.length) % KITE_DATA.length;
+            isDetailShow = false;
+            updateKiteDisplay();
+        }
+
+        // 更新风筝显示 - 核心修改：添加由大变小动画
+        function updateKiteDisplay() {
+            const currentKite = KITE_DATA[currentIndex];
+            kiteName.innerText = currentKite.name;
+            kiteName.style.display = "block";
+            
+            // 1. 先隐藏图片，同时设置动画初始状态（超大尺寸）
+            kiteImg.style.opacity = '0';
+            kiteImg.style.maxWidth = "150%";  // 动画起始尺寸（和点击后一致）
+            kiteImg.style.maxHeight = "150%";
+            kiteImg.style.marginTop = "2.5rem"; // 起始位置和点击后一致
+            
+            // 2. 切换图片资源
+            setTimeout(() => {
+                kiteBgImg.src = currentKite.bgImg;
+                kiteImg.src = currentKite.img;
+                
+                // 3. 显示图片并触发由大变小动画
+                kiteImg.style.opacity = '1';
+                // 过渡到默认尺寸和位置（利用CSS transition自动动画）
+                kiteImg.style.maxWidth = "80%";
+                kiteImg.style.maxHeight = "80%";
+                kiteImg.style.marginTop = "1.6rem";
+                
+                kiteBgImg.style.opacity = '0.8';
+            }, 150);
+        }
+
+        // 点击切换详情图（放大+下移）
+        function replaceKiteImg() {
+            const currentKite = KITE_DATA[currentIndex];
+            kiteImg.style.opacity = 0;
+
+            setTimeout(() => {
+                isDetailShow = !isDetailShow;
+                
+                kiteImg.src = isDetailShow ? currentKite.detailImg : currentKite.img;
+                kiteBgImg.src = isDetailShow ? currentKite.detailBgImg : currentKite.bgImg;
+                kiteName.style.display = isDetailShow ? "none" : "block";
+                
+                if (isDetailShow) {
+                    kiteImg.style.maxWidth = "150%";
+                    kiteImg.style.maxHeight = "150%";
+                    kiteImg.style.marginTop = "2.55rem";
+                    // 点击放大后暂停飘动动画
+                    kiteImg.style.animation = "none";
+                } else {
+                    kiteImg.style.maxWidth = "80%";
+                    kiteImg.style.maxHeight = "80%";
+                    kiteImg.style.marginTop = "1.6rem";
+                    // 恢复默认图片后重新开启飘动动画
+                    kiteImg.style.animation = "float 3s linear infinite";
+                }
+
+                kiteImg.style.opacity = 1;
+                kiteBgImg.style.opacity = 0.8;
+            }, 250);
+        }
+
+        // 音乐开关 - 新增：控制音乐播放/暂停
+        function toggleMusic() {
+            isMusicPlaying = !isMusicPlaying;
+            // 切换图标（原有逻辑保留）
+            musicIcon.src = isMusicPlaying 
+                ? "images/2/资源 24@0.5x.webp"
+                : "images/2/资源 24(2)@0.5x.png";
+            // 新增：控制音乐播放/暂停
+            if (isMusicPlaying) {
+                bgMusic.play().catch(err => {
+                    console.log("播放音乐失败：", err);
+                    // 播放失败时恢复状态和图标
+                    isMusicPlaying = false;
+                    musicIcon.src = "images/2/资源 24(2)@0.5x.png";
+                });
+            } else {
+                bgMusic.pause();
+            }
+        }
+
+        // 绑定事件
+        musicIcon.addEventListener("click", toggleMusic);
+
+        // 初始化
+        function init() {
+            preloadAllImages();
+            const firstKite = KITE_DATA[0];
+            kiteName.innerText = firstKite.name;
+            kiteBgImg.src = firstKite.bgImg;
+            // 初始化也添加由大变小动画
+            kiteImg.style.maxWidth = "150%";
+            kiteImg.style.maxHeight = "150%";
+            kiteImg.style.marginTop = "2.5rem";
+            kiteImg.style.opacity = 0;
+            
+            setTimeout(() => {
+                kiteImg.src = firstKite.img;
+                kiteImg.style.opacity = 1;
+                kiteImg.style.maxWidth = "80%";
+                kiteImg.style.maxHeight = "80%";
+                kiteImg.style.marginTop = "1.6rem";
+            }, 200);
+
+            // 初始化音乐图标为暂停状态（符合实际）
+            musicIcon.src = "images/2/资源 24(2)@0.5x.png";
+        }
+
+        init();
+    </script>
+</body>
+</html>
