@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100;300;400&display=swap">
+    <title>彩绘步骤</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            background-image: url("素材最终/背景图/背景图.jpg");
+            background-size: cover;
+            background-position: center;
+            font-family: "Noto Sans SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        /* 音乐图标 */
+        .music-icon {
+            position:absolute;
+            top:30px;
+            right:30px;
+            width:32px;
+            height:32px;
+            background-image:url("素材最终/封面/资源 24@0.5x.webp");
+            background-size:100% 100%;
+            background-repeat:no-repeat;
+            background-position: center;
+            cursor:pointer;
+            z-index: 999;
+        }
+
+        /* 步骤标签：扎/糊/绘，绘放大高亮 */
+        .step-tabs {
+            display:flex;
+            gap:10vw;
+            margin:8vh 0 3vh 0;
+            align-items: center;
+        }
+
+        .step-tab {
+            width: 15vw;
+            height: 15vw;
+            max-width: 70px;
+            max-height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.5vw;
+            background: transparent;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+
+        /* 扎/糊/绘分别使用独立.webp文件 */
+        .step-tab.za {
+            width:18vw;
+            height:18vw;
+            max-width: 80px;
+            max-height: 80px;
+            background: url("素材最终/风筝制作/资源\ 27@0.5x.webp")no-repeat center;
+            background-size: contain;
+            display: flex;
+            border: none;
+            align-items: center;
+            justify-content: center;
+            cursor:pointer;
+            transition: all 0.3s;
+        }
+
+        .step-tab.hu {
+            width:18vw;
+            height:18vw;
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 50%;
+            background: url("素材最终/风筝制作/资源\ 28@0.5x.webp")no-repeat center;
+            background-size: contain;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor:pointer;
+            transition: all 0.3s;
+        }
+
+        .step-tab.hui {
+            width:28vw;
+            height:28vw;
+            max-width: 120px;
+            max-height: 120px;
+            background: url("素材最终/风筝制作/资源\ 32@0.5x.webp")no-repeat center;
+            background-size: contain;
+            border: none;
+        }
+
+        .kite-container {
+            width: 85%;
+            height: 40vh;
+            margin-bottom: 2vh;
+            display: flex;
+            position: relative;
+        }
+
+        .kite-layer{
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+
+        }
+
+        #base-layer {
+            display: block;
+            z-index: 1;
+        }
+
+        #pattern-layer {
+            z-index: 2;
+        }
+
+        #face-layer {
+            z-index: 4;
+        }
+
+        #wing-layer {
+            z-index: 5;
+        }
+
+        #body-layer {
+            z-index: 3;
+        }
+
+        /* 四级选项栏：纹样/脸/翅/身，使用边框.webp */
+        .fourth-option-box {
+            width: 75vw;
+            max-width: 600px;
+            height: 8vw;
+            max-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin-bottom: 3vh;
+            z-index: 20;
+        }
+
+        .fourth-option-item {
+            /* 选项边框使用专属.webp */
+            background: url("素材最终/风筝制作/资源\ 90@0.5x.webp");
+            background-size: 100% 100%;
+            width: 15vw;
+            height: 6vw;
+            max-width: 60px;
+            max-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+
+        .fourth-option-item.active {
+            opacity: 1;
+            transform: scale(1.1); /* 初始纹样放大 */
+        }
+
+        .fourth-option-text {
+            font-size: 2.5vw;
+            color: #000;
+            font-weight: 400;
+        }
+
+        /* 纹样选项框：使用专属.webp背景 */
+        .option-box {
+            width:85vw;
+            max-width: 700px;
+            height:20vw;
+            max-height: 120px;
+            background: url("素材最终/风筝制作/资源 80@0.5x.webp");
+            background-size: 100% 100%;
+            display:flex;
+            align-items: center;
+            justify-content: space-around;
+            padding:1vw 2vw;
+            position: relative;
+            z-index: 20;
+        }
+
+        .option-box.pattern::before {
+            content: "选择喜欢的纹样";
+        }
+
+        .option-box.pattern::before {
+            content: "选择喜欢的颜色";
+        }
+
+        .option-box::before{
+            position: absolute;
+            top:-2.5vh;
+            left:50%;
+            transform: translateX(-50%);
+            font-size: 3.5vw;
+            color: #000;
+        }
+
+        .option-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            background: none;
+        }
+
+        .option-icon {
+            width: 10vw;
+            height: 10vw;
+            max-width: 50px;
+            max-height: 50px;
+            object-fit: contain;
+            margin-bottom: 0.5vw;
+            border-radius: 50%;
+        }
+
+        .option-text {
+            font-size: 3vw;
+            color: #000;
+            font-weight: 300;
+        }
+
+        /* 按钮组：上一步/去放飞（去放飞初始禁用） */
+        .btn-group {
+            display: flex;
+            gap: 25vw;
+            margin-top: 4vh;
+            z-index: 20;
+        }
+
+        .page-btn {
+            padding: 1.2vw 3.5vw;
+            /* 按钮背景使用.webp */
+            background: url("素材最终/风筝制作/资源 89@0.5x.webp");
+            background-size: 100% 100%;
+            font-size: 3vw;
+            color: #000;
+            cursor: pointer;
+            border: none;
+            opacity: 0.5;
+            pointer-events: none;
+            width: 25vw;
+            max-height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-btn.enable {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* 移动端适配 */
+        @media screen and (max-width: 375px) {
+            .step-tabs {
+                gap: 6vw;
+            }
+            .pattern-option-box {
+                height: 28vw;
+            }
+            .btn-group {
+                gap: 15vw;
+            }
+            .page-btn {
+                width: 30vw;
+                height: 10vw;
+            }
+            .fourth-option-item {
+                width: 18vw;
+                height: 8vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="music-icon" id="musicIcon"></div>
+
+    <!-- 步骤标签：扎/糊/绘 -->
+    <div class="step-tabs">
+        <div class="step-tab za"></div>
+        <div class="step-tab hu"></div>
+        <div class="step-tab hui"></div>
+    </div>
+
+    <!-- 风筝分层容器：5层叠加 -->
+    <div class="kite-container">
+        <img src="" alt="风筝宣纸底" class="kite-layer" id="base-layer">
+        <img src="" alt="风筝纹样" class="kite-layer" id="pattern-layer">
+        <img src="" alt="风筝面颜色" class="kite-layer" id="face-layer">
+        <img src="" alt="风筝翅颜色" class="kite-layer" id="wing-layer">
+        <img src="" alt="风筝身颜色" class="kite-layer" id="body-layer">
+    </div>
+
+    <!-- 四级选项栏：初始激活纹样 -->
+    <div class="fourth-option-box">
+        <div class="fourth-option-item active" data-type="pattern">
+            <span class="fourth-option-text">纹样</span>
+        </div>
+        <div class="fourth-option-item" data-type="face">
+            <span class="fourth-option-text">面</span>
+        </div>
+        <div class="fourth-option-item" data-type="wing">
+            <span class="fourth-option-text">翅</span>
+        </div>
+        <div class="fourth-option-item" data-type="body">
+            <span class="fourth-option-text">身</span>
+        </div>
+    </div>
+
+    <!-- 选型框：初始显示纹样 -->
+    <div class="option-box pattern" id="optionBox">
+        <div class="option-item" data-value="bat">
+            <img src="素材最终/风筝制作/资源 84@0.5x.webp" alt="蝙蝠纹图标" class="option-icon">
+            <span class="option-text">蝙蝠纹</span>
+        </div>
+        <div class="option-item" data-value="lotus">
+            <img src="素材最终/风筝制作/资源 85@0.5x.webp" alt="莲花纹图标" class="option-icon">
+            <span class="option-text">莲花纹</span>
+        </div>
+        <div class="option-item" data-value="lion">
+            <img src="素材最终/风筝制作/资源 86@0.5x.webp" alt="狮头纹图标" class="option-icon">
+            <span class="option-text">狮头纹</span>
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button class="page-btn enable" id="prevBtn">上一步</button>
+        <button class="page-btn" id="flyBtn" disabled>去放飞</button>
+    </div>
+
+    <script>
+        // 1. 获取URL参数：动物类型（swallow/butterfly/fish）
+        const urlParams = new URLSearchParams(window.location.search);
+        const kiteType = urlParams.get('type') || 'swallow';
+        // 全局变量：存储选中的纹样 + 已选图层
+        let selectedPattern = '';
+        const selectedLayers = new Set();
+
+        // 2. 资源路径映射表：【动物-纹样-部位-颜色】 四层强关联
+        // 每种动物3纹样，每纹样3部位，每部位3颜色，完全一一对应
+        const resourceMap = {
+            // 燕子
+            swallow: {
+                base: "素材最终/风筝制作/步骤图/燕 宣纸.PNG",
+                bat: {
+                    pattern: "素材最终/风筝/IMG_2593.PNG",
+                    face: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2592.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2601.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2608.PNG"
+                    },
+                    wing: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2591.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2600.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2607.PNG"
+                    },
+                    body: {
+                        qihei: "素材最终/风筝/椋庣瓭/IMG_2586.PNG",
+                        jingbai: "素材最终/风筝/椋庣瓭/IMG_2605.PNG",
+                        gaose: "素材最终/风筝/椋庣瓭/IMG_2602.PNG"
+                    }
+                },
+                lotus: {
+                    pattern: "素材最终/风筝/椋庣瓭/IMG_2609.PNG",
+                    face: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2610.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2620.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2618.PNG"
+                    },
+                    wing: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2611.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2619.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2621.PNG"
+                    },
+                    body: {
+                        qihei: "素材最终/风筝/椋庣瓭/IMG_2615.PNG",
+                        jingbai: "素材最终/风筝/椋庣瓭/IMG_2617.PNG",
+                        gaose: "素素材最终/风筝/椋庣瓭/IMG_2616.PNG"
+                    }
+                },
+                lion: {
+                    pattern: "素材最终/风筝/椋庣瓭/IMG_2612.PNG",
+                    face: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2641.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2640.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2632.PNG"
+                    },
+                    wing: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2636.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2638.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2639.PNG"
+                    },
+                    body: {
+                        qihei: "素材最终/风筝/椋庣瓭/IMG_2629.PNG",
+                        jingbai: "素材最终/风筝/椋庣瓭/IMG_2630.PNG",
+                        gaose: "素材最终/风筝/椋庣瓭/IMG_2631.PNG"
+                    }
+                }
+            },
+            // 蝴蝶
+            butterfly: {
+                base: "素材最终/风筝制作/步骤图/蝶 宣纸.PNG",
+                bat: {
+                    pattern: "素材最终/风筝/椋庣瓭/IMG_2643.PNG",
+                    face: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2649.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2651.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2655.PNG"
+                    },
+                    wing: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2657.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2656.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2658.PNG"
+                    },
+                    body: {
+                        qihei: "素材最终/风筝/椋庣瓭/IMG_2644.PNG",
+                        jingbai: "素材最终/风筝/椋庣瓭/IMG_2643.PNG",
+                        gaose: "素材最终/风筝/椋庣瓭/IMG_2645.PNG"
+                    }
+                },
+                lotus: {
+                    pattern: "素材最终/风筝/椋庣瓭/IMG_2664.PNG",
+                    face: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2661.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2667.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2669.PNG"
+                    },
+                    wing: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2660.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2666.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2668.PNG"
+                    },
+                    body: {
+                        qihei: "素材最终/风筝/椋庣瓭/IMG_2665.PNG",
+                        jingbai: "素材最终/风筝/椋庣瓭/IMG_2664.PNG",
+                        gaose: "素材最终/风筝/椋庣瓭/IMG_2663.PNG"
+                    }
+                },
+                lion: {
+                    pattern: "素材最终/风筝/椋庣瓭/IMG_2671.PNG",
+                    face: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2676.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2677.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2675.PNG"
+                    },
+                    wing: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2674.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2681.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2680.PNG"
+                    },
+                    body: {
+                        qihei: "素材最终/风筝/椋庣瓭/IMG_2673.PNG",
+                        jingbai: "素材最终/风筝/椋庣瓭/IMG_2671.PNG",
+                        gaose: "素材最终/风筝/椋庣瓭/IMG_2672.PNG"
+                    }
+                }
+            },
+            // 鱼
+            fish: {
+                base: "素材最终/风筝制作/步骤图/鱼 宣纸.PNG",
+                bat: {
+                    pattern: "素材最终/风筝/椋庣瓭/IMG_2703.PNG",
+                    face: {
+                        feihong: "素材最终/彩绘/鱼/蝙蝠纹/面_绯红.webp",
+                        baolan: "素材最终/彩绘/鱼/蝙蝠纹/面_宝蓝.webp",
+                        yingtao: "素材最终/彩绘/鱼/蝙蝠纹/面_樱桃.webp"
+                    },
+                    wing: {
+                        feihong: "素材最终/彩绘/鱼/蝙蝠纹/翅_绯红.webp",
+                        baolan: "素材最终/彩绘/鱼/蝙蝠纹/翅_宝蓝.webp",
+                        yingtao: "素材最终/彩绘/鱼/蝙蝠纹/翅_樱桃.webp"
+                    },
+                    body: {
+                        qihei: "素材最终/风筝/椋庣瓭/IMG_2705.PNG",
+                        jingbai: "素材最终/风筝/椋庣瓭/IMG_2706.PNG",
+                        gaose: "素材最终/风筝/椋庣瓭/IMG_2707.PNG"
+                    }
+                },
+                lotus: {
+                    pattern: "素材最终/风筝/椋庣瓭/IMG_2684.PNG",
+                    face: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2689.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2693.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2690.PNG"
+                    },
+                    wing: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2687.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2695.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2692.PNG"
+                    },
+                    body: {
+                        qihei: "素材最终/风筝/椋庣瓭/IMG_2688.PNG",
+                        jingbai: "素材最终/风筝/椋庣瓭/IMG_2694.PNG",
+                        gaose: "素材最终/风筝/椋庣瓭/IMG_2691.PNG"
+                    }
+                },
+                lion: {
+                    pattern: "素材最终/风筝/椋庣瓭/IMG_2704.PNG",
+                    face: {
+                        feihong: "素材最终/彩绘/鱼/狮头纹/面_绯红.webp",
+                        baolan: "素材最终/彩绘/鱼/狮头纹/面_宝蓝.webp",
+                        yingtao: "素材最终/彩绘/鱼/狮头纹/面_樱桃.webp"
+                    },
+                    wing: {
+                        feihong: "素材最终/风筝/椋庣瓭/IMG_2696.PNG",
+                        baolan: "素材最终/风筝/椋庣瓭/IMG_2701.PNG",
+                        yingtao: "素材最终/风筝/椋庣瓭/IMG_2702.PNG"
+                    },
+                    body: {
+                        feihong: "素材最终/彩绘/鱼/狮头纹/身_漆黑.webp",
+                        baolan: "素材最终/彩绘/鱼/狮头纹/身_精白.webp",
+                        yingtao: "素材最终/彩绘/鱼/狮头纹/身_缟色.webp"
+                    }
+                }
+            }
+        };
+
+        // 3. 初始化：加载对应动物的宣纸底
+        const baseLayer = document.getElementById('base-layer');
+        baseLayer.src = resourceMap[kiteType].base;
+
+        // 4. 四级选项切换逻辑
+        const fourthOptionItems = document.querySelectorAll('.fourth-option-item');
+        const optionBox = document.getElementById('optionBox');
+        fourthOptionItems.forEach(item => {
+            item.addEventListener('click', () => {
+                fourthOptionItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                const partType = item.getAttribute('data-type');
+
+                // 清空选型框 + 切换类名
+                optionBox.innerHTML = '';
+                optionBox.classList.remove('pattern', 'color');
+
+                if (partType === 'pattern') {
+                    optionBox.classList.add('pattern');
+                    renderPatternOptions();
+                } else {
+                    optionBox.classList.add('color');
+                    // 强制先选纹样
+                    if (!selectedPattern) {
+                        alert('请先选择纹样打底！');
+                        fourthOptionItems[0].classList.add('active');
+                        renderPatternOptions();
+                        return;
+                    }
+                    renderColorOptions(partType);
+                }
+                bindOptionClick();
+            });
+        });
+
+        // 5. 渲染纹样选项（固定3种：蝙蝠纹/莲花纹/狮头纹）
+        function renderPatternOptions() {
+            optionBox.innerHTML = `
+                <div class="option-item" data-value="bat">
+                    <img src="素材最终/风筝制作/资源 84@0.5x.webp" alt="蝙蝠纹图标" class="option-icon">
+                    <span class="option-text">蝙蝠纹</span>
+                </div>
+                <div class="option-item" data-value="lotus">
+                    <img src="素材最终/风筝制作/资源 85@0.5x.webp" alt="莲花纹图标" class="option-icon">
+                    <span class="option-text">莲花纹</span>
+                </div>
+                <div class="option-item" data-value="lion">
+                    <img src="素材最终/风筝制作/资源 86@0.5x.webp" alt="狮头纹图标" class="option-icon">
+                    <span class="option-text">狮头纹</span>
+                </div>
+                `;
+        }
+
+        // 6. 渲染颜色选项：根据部位显示对应颜色
+        function renderColorOptions(partType) {
+            let colorHtml = '';
+            if (partType === 'face' || partType === 'wing' ||(partType ==='body' && kiteType==='fish')) {
+                // 面/翅颜色：绯红/宝蓝/樱桃
+                colorHtml = `
+                    <div class="option-item" data-value="feihong">
+                        <img src="素材最终/风筝制作/资源 91@0.5x.webp" alt="绯红图标" class="option-icon">
+                        <span class="option-text">绯红</span>
+                    </div>
+                    <div class="option-item" data-value="baolan">
+                        <img src="素材最终/风筝制作/资源 92@0.5x.webp" alt="宝蓝图标" class="option-icon">
+                        <span class="option-text">宝蓝</span>
+                    </div>
+                    <div class="option-item" data-value="yingtao">
+                        <img src="素材最终/风筝制作/资源 93@0.5x.webp" alt="樱桃图标" class="option-icon">
+                        <span class="option-text">樱桃</span>
+                    </div>
+                `;
+            } else if (partType === 'body') {
+                // 身颜色：漆黑/精白/缟色
+                colorHtml = `
+                    <div class="option-item" data-value="qihei">
+                        <img src="素材最终/风筝制作/资源 94@0.5x.webp" alt="漆黑图标" class="option-icon">
+                        <span class="option-text">漆黑</span>
+                    </div>
+                    <div class="option-item" data-value="jingbai">
+                        <img src="素材最终/风筝制作/资源 95@0.5x.webp" alt="精白图标" class="option-icon">
+                        <span class="option-text">精白</span>
+                    </div>
+                    <div class="option-item" data-value="gaose">
+                        <img src="素材最终/风筝制作/资源 96@0.5x.webp" alt="缟色图标" class="option-icon">
+                        <span class="option-text">缟色</span>
+                    </div>
+                `;
+            }
+            optionBox.innerHTML = colorHtml;
+        }
+
+        // 7. 选型点击核心逻辑：四层联动加载素材 + 分层显示
+        function bindOptionClick() {
+            const optionItems = document.querySelectorAll('.option-item');
+            optionItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const partType = document.querySelector('.fourth-option-item.active').getAttribute('data-type');
+                    const selectValue = item.getAttribute('data-value');
+                    const targetLayer = document.getElementById(`${partType}-layer`);
+
+                    // 加载对应资源
+                    if (partType === 'pattern') {
+                        // 纹样层：动物-纹样-pattern
+                        targetLayer.src = resourceMap[kiteType][selectValue].pattern;
+                        selectedPattern = selectValue;
+                    } else {
+                        // 面/翅/身层：动物-选中纹样-部位-颜色
+                        targetLayer.src = resourceMap[kiteType][selectedPattern][partType][selectValue];
+                    }
+                    // 显示当前图层
+                    targetLayer.style.display = 'block';
+                    // 标记已选图层
+                    selectedLayers.add(partType);
+
+                    // 四层全选：解锁去放飞
+                    if (selectedLayers.has('pattern') && selectedLayers.has('face') && selectedLayers.has('wing') && selectedLayers.has('body')) {
+                        document.getElementById('flyBtn').classList.add('enable');
+                    }
+                });
+            });
+        }
+
+        // 初始绑定纹样点击事件
+        bindOptionClick();
+
+        // 8. 页面跳转逻辑
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            window.location.href = `page6.html?type=${kiteType}`;
+        });
+
+        document.getElementById('flyBtn').addEventListener('click', () => {
+            window.location.href = `page8.html?type=${kiteType}&pattern=${selectedPattern}`;
+        });
+
+        // 9. 音乐开关功能
+        const bgMusic = new Audio("");
+        bgMusic.loop = true;
+        let isMusicPlaying = false;
+        document.getElementById('musicIcon').addEventListener('click', () => {
+            isMusicPlaying = !isMusicPlaying;
+            isMusicPlaying ? bgMusic.play().catch(err => console.log(err)) : bgMusic.pause();
+        });
+    </script>
+</body>
+</html>

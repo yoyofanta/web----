@@ -51,13 +51,14 @@
             margin-bottom: 10px;
             justify-content: center;
             display: flex;
+            position: relative;
         }
 
         .skeleton-img{
             width:85%;
             height:85%;
             object-fit: contain;
-            display:none;
+            display:block;
             position: absolute;
             top:0;
             left:0;
@@ -66,7 +67,7 @@
 
         .options{
             display: flex;
-            justify-content: center;
+            justify-content: space-around;
             gap: 0;
             margin-bottom: 40px;
             margin-top: -20px;
@@ -75,6 +76,7 @@
             height: 140px;
             background: url("素材最终/风筝制作/资源\ 77@0.5x.webp")no-repeat center;
             background-size: 100% 100%;
+            align-items: center;
         }
 
         .option-item{
@@ -204,15 +206,15 @@
             <img src="骨架/骨架/IMG_2714.PNG" alt="燕子骨架" class="skeletonimg" id="skeletonImg">
         </div>
         <div class="options">
-            <div class="option-item active"  data-type="swallow" data-skeleton="骨架/骨架/IMG_2714.PNG" data-icon="素材最终/风筝制作/资源\ 73@0.5x.webp">
+            <div class="option-item"  data-type="swallow" data-skeleton="骨架/骨架/IMG_2714.PNG" data-icon="素材最终/风筝制作/资源\ 73@0.5x.webp">
                 <img src="素材最终/风筝制作/资源 73@0.5x.webp" alt="燕" class="option-icon">
                 <span class="option-text">燕</span>
             </div>
-            <div class="option-item active" data-type="butterfly" data-skeleton="骨架/骨架/IMG_2722.PNG" data-icon="素材最终/风筝制作/资源 74@0.5x.webp">
+            <div class="option-item" data-type="butterfly" data-skeleton="骨架/骨架/IMG_2722.PNG" data-icon="素材最终/风筝制作/资源 74@0.5x.webp">
                 <img src="素材最终/风筝制作/资源 74@0.5x.webp" alt="蝶" class="option-icon">
                 <span class="option-text">蝶</span>
             </div>
-            <div class="option-item active" data-type="fish" data-skeleton="骨架/骨架/IMG_2718.PNG" data-icon="素材最终/风筝制作/资源 75@0.5x.webp">
+            <div class="option-item" data-type="fish" data-skeleton="骨架/骨架/IMG_2718.PNG" data-icon="素材最终/风筝制作/资源 75@0.5x.webp">
                 <img src="素材最终/风筝制作/资源 75@0.5x.webp" alt="鱼" class="option-icon">
                 <span class="option-text">鱼</span>
             </div>

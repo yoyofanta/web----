@@ -25,7 +25,19 @@
             align-items: center;
             justify-content: center;
             background-repeat: no-repeat;
-            padding: 2vw;
+        }
+        .music-icon{
+            position:absolute;
+            top:30px;
+            right:30px;
+            width:32px;
+            height:32px;
+            background-image:url("素材最终/封面/资源\ 24@0.5x.webp");
+            background-size:100% 100%;
+            background-repeat:no-repeat;
+            background-position: center;
+            cursor:pointer;
+            z-index: 999;
         }
 
         .step-tabs{
@@ -79,84 +91,52 @@
         }
 
         .skeleton-container{
-            width:90%;
-            height:90%;
-            margin-bottom: 0px;
+            width:80%;
+            height:45vh;
+            margin-bottom: 6vh;
             display:flex;
             justify-content: center;
+            align-items: center;
             overflow: visible;
             position: relative;
             align-items: center;
         }
 
         .skeleton-img{
-            width:120%;
-            height:120%;
+            width:100%;
+            height:100%;
             object-fit: contain;
             display:none;
             position: absolute;
             z-index: 10;
-            top:0;
             left:50%;
-            transform: translateX(-50%);
-            right:0;
-            bottom:0;
-            margin:auto;
-        }
-
-        .skeleton-img[id^="img4-"]{
-            width:180%;
-            height:180%;
-            object-fit: contain;
-            left:50%;
-            transform: translateX(-50%);
-        }
-
-        .skeleton-img[id^="img5-"]{
-            width:180%;
-            height:180%;
-            object-fit: contain;
-            left:50%;
-            transform: translateX(-50%);
-        }
-
-        .skeleton-img[id^="final"]{
-            width:180%;
-            height:180%;
-            object-fit: contain;
-            left:50%;
-            transform: translateX(-50%);
-        }
-
-        .skeleton-img.active{
-            display:block;
-            animation:fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn{
-            from{
-                opacity:0;
-                transform:translate(-50%,0) scale(0.8);
-            }
-            to{
-                opacity:1;
-                transform:translate(-50%,0) scale(1);
-            }
+            top:50%;
+            transform: translate(-50%,-50%);
         }
 
         .option-box{
-            width:90%;
-            height:90vw;
-            max-height: 170px;
+            width:85vw;
+            max-width: 700px;
+            height:20vw;
+            max-height: 120px;
             background: url("素材最终/风筝制作/资源\ 80@0.5x.webp");
-            background-size: cover;
+            background-size: 100% 100%;
             display:flex;
             align-items: center;
             justify-content: space-around;
-            padding:1vw;
-            margin:20vw 5vw;
+            padding:1vw 2vw;
             position: relative;
             z-index: 20;
+        }
+
+        .option-box::before{
+            content:"依次点击扎制骨架";
+            position:absolute;
+            top:-3vh;
+            left:50%;
+            transform: translateX(-50%);
+            font-size:3.5vw;
+            color:#000
         }
 
         .option-item{
@@ -166,20 +146,13 @@
             cursor: pointer;
             opacity: 0.7;
             transition: opacity 0.3s;
+            pointer-events: none;
+            background: none;
         }
 
-        .option-item img{
-            width:12vw;
-            height:12vw;
-            max-width: 60px;
-            max-height: 60px;
-            object-fit: contain;
-            margin-bottom: 1vw;
-        }
-
-        .option-item span{
-            font-size: 3.5vw;
-            color:#000;
+        .option-item.available{
+            pointer-events: all;
+            opacity: 0.9;
         }
 
         .option-item.used{
@@ -187,40 +160,56 @@
             pointer-events: none;
         }
 
+        .option-icon{
+            width:12vw;
+            height:12vw;
+            max-width: 60px;
+            max-height: 60px;
+            object-fit: contain;
+            margin-bottom: 0.5vw;
+        }
+
+        .option-text{
+            font-size: 3.5vw;
+            color:#000;
+            font-weight: 300;
+        }
+
         .btn-group{
             display:flex;
-            gap:20vw;
-            position: relative;
-            top: -7vh;
-            z-index: 1;
+            gap:25vw;
+            margin-top: 5vh;
+            z-index: 20;
         }
 
         .page-btn{
-            padding: 2vw 5vw;
+            padding: 1.5vw 4vw;
             background: url("素材最终/风筝制作/资源\ 89@0.5x.webp");
-            background-size: cover;
-            font-size: 4vw;
+            background-size: 100% 100%;
+            font-size: 3.5vw;
             color: #000;
             cursor: pointer;
-            transition: all 0.3s;
             border:none;
+        }
+
+        .page-btn.enable{
+            opacity: 1;
+            pointer-events: all;
         }
 
 
         @media screen and (max-width:375px){
-            .step-tabs{
-                gap:3vw;
-            }
             .option-box{
                 height:25vw;
             }
             .btn-group{
-                gap:15vw;
+                gap:18vw;
             }
         }
     </style>
 </head>
 <body>
+    <div class ="music-icon" id="musicIcon"></div>
     <div class="step-tabs">
         <div class="step-tab za active"></div>
         <div class="step-tab hu"></div>
@@ -228,9 +217,9 @@
     </div>
 
     <div class ="skeleton-container" id="skeletonContainer">
-        <img src="素材最终/风筝制作/步骤图/竹.PNG" alt="竹子" class="skeleton-img" id="img1">
-        <img src="素材最终/风筝制作/步骤图/刀.PNG" alt="刀具" class="skeleton-img" id="img2">
-        <img src="素材最终/风筝制作/步骤图/锯.PNG" alt="锯子" class="skeleton-img" id="img3">
+        <img src="素材最终/风筝制作/步骤图/竹.PNG" alt="竹子" class="skeleton-img" id="img-bamboo">
+        <img src="素材最终/风筝制作/步骤图/刀.PNG" alt="刀具" class="skeleton-img" id="img-knife">
+        <img src="素材最终/风筝制作/步骤图/锯.PNG" alt="锯子" class="skeleton-img" id="img-saw">
 
         <img src="素材最终/风筝制作/步骤图/燕 灯.PNG" alt="燕子灯" class="skeleton-img" id="img4-swallow">
         <img src="素材最终/风筝制作/步骤图/蝶 灯.PNG" alt="蝴蝶灯" class="skeleton-img" id="img4-butterfly">
@@ -246,24 +235,24 @@
     </div>
 
     <div class="option-box">
-        <div class="option-item" data-step="1">
-            <img src="素材最终/风筝制作/资源 33@0.5x.webp" alt="竹图标">
+        <div class="option-item" data-step="1" data-img="img-bamboo">
+            <img src="素材最终/风筝制作/资源 33@0.5x.webp" alt="竹图标" class="option-icon">
             <span>竹</span> 
         </div>
-        <div class="option-item" data-step="2">
-            <img src="素材最终/风筝制作/资源 34@0.5x.webp" alt="刀图标">
+        <div class="option-item" data-step="2" data-img="img-knife">
+            <img src="素材最终/风筝制作/资源 34@0.5x.webp" alt="刀图标" class="option-icon">
             <span>刀</span> 
         </div>
-        <div class="option-item" data-step="3">
-            <img src="素材最终/风筝制作/资源 35@0.5x.webp" alt="锯图标">
+        <div class="option-item" data-step="3" data-img="img-saw">
+            <img src="素材最终/风筝制作/资源 35@0.5x.webp" alt="锯图标" class="option-icon">
             <span>锯</span> 
         </div>
-        <div class="option-item" data-step="4">
-            <img src="素材最终/风筝制作/资源 36@0.5x.webp" alt="灯图标">
+        <div class="option-item" data-step="4" data-type="lamp">
+            <img src="素材最终/风筝制作/资源 36@0.5x.webp" alt="灯图标" class="option-icon">
             <span>灯</span> 
         </div>
-        <div class="option-item" data-step="5">
-            <img src="素材最终/风筝制作/资源 37@0.5x.webp" alt="绳图标">
+        <div class="option-item" data-step="5" data-type="rope">
+            <img src="素材最终/风筝制作/资源 37@0.5x.webp" alt="绳图标" class="option-icon">
             <span>绳</span> 
         </div>
     </div>
@@ -275,58 +264,90 @@
 
     <script>
         let clickIndex=0;
-        const kiteType=getKiteType();
+        const urlParams = new URLSearchParams(window.location.search);
+        const kiteType=urlParams.get('type') || 'swallow';
         const optionItems=document.querySelectorAll('.option-item');
         const skeletonImgs=document.querySelectorAll('.skeleton-img');
         const prevBtn=document.getElementById("prevBtn");
         const nextBtn=document.getElementById("nextBtn");
+        const musicIcon=document.getElementById("musicIcon");
 
-        optionItems.forEach(item=>{
-            item.addEventListener('click',function(){
-                const currentStep=parseInt(this.getAttribute('data-step'));
-                if(currentStep!==clickIndex+1)return;
+        let currentStep=0;
+        const totalSteps=5;
+        const clickedSteps=new Set();
 
-                if(clickIndex>4)return;
-                skeletonImgs.forEach(img => img.classList.remove('active'));
+        optionItems[0].classList.add('available');
+        prevBtn.classList.add('enable');
 
-                const step=this.getAttribute('data-step');
-                let targetImgId='';
+        optionItems.forEach((item,index)=>{
+            item.addEventListener('click',()=>{
+            const step = parseInt(item.getAttribute('data-step'));
+                clickedSteps.add(step);
 
-                if(step==='1')targetImgId='img1';
-                else if(step==='2')targetImgId='img2';
-                else if(step==='3')targetImgId='img3';
-                else if(step==='4')targetImgId=`img4-${kiteType}`;
-                else if(step==='5')targetImgId=`img5-${kiteType}`;
+                skeletonImgs.forEach(img => img.style.display = 'none');
 
-                const targetImg=document.getElementById(targetImgId);
-                if(targetImg)targetImg.classList.add('active');
-                
-                this.classList.add('used');
-                clickIndex++;
+                let targetImgId = '';
+                const dataType = item.getAttribute('data-type');
+                // 区分固定图和动态图（灯/绳按骨架类型切换）
+                if (dataType === 'lamp') {
+                    // 灯：匹配 燕/蝶/鱼 对应的灯图
+                    targetImgId = `img4-${kiteType}`;
+                } else if (dataType === 'rope') {
+                    // 绳：匹配 燕/蝶/鱼 对应的绳图
+                    targetImgId = `img5-${kiteType}`;
+                    // 绳步骤后，显示最终骨架 + 解锁下一步
+                    setTimeout(()=>{
+                        skeletonImgs.forEach(img => img.style.display = 'none');
+                        document.getElementById(`final${kiteType.charAt(0).toUpperCase() + kiteType.slice(1)}`).style.display = 'block';
+                    }, 500);
+                    nextBtn.classList.add('enable');
+                } else {
+                    // 竹/刀/锯：匹配固定图片
+                    targetImgId = item.getAttribute('data-img');
+                }
 
-                if(clickIndex===5){
-                    skeletonImgs.forEach(img => img.classList.remove('active'));
-                    const finalId=`final${kiteType.charAt(0).toUpperCase()+kiteType.slice(1)}`;
-                    const finalImg=document.getElementById(finalId);
-                    if(finalImg)finalImg.classList.add('active')
-                    nextBtn.disabled=false;
+                // 显示当前步骤的.webp图
+                const targetImg = document.getElementById(targetImgId);
+                if (targetImg) targetImg.style.display = 'block';
+
+                // 标记当前选项为已使用，解锁下一个选项
+                item.classList.add('used');
+                item.classList.remove('available');
+                currentStep = step;
+
+                // 解锁下一个选项（非最后一步时）
+                if (index < totalSteps - 1) {
+                    optionItems[index + 1].classList.add('available');
                 }
             });
         });
 
-        prevBtn.addEventListener('click', function() {
+        // 6. 上一步：返回第四页选择骨架页面
+        prevBtn.addEventListener('click', () => {
             window.location.href = 'page4.html';
         });
-        nextBtn.addEventListener('click', function() {
-            window.location.href = 'page6.html';
+
+        // 7. 下一步：完成扎制，跳转到糊纸页面（携带骨架类型参数）
+        nextBtn.addEventListener('click', () => {
+            if (clickedSteps.has(totalSteps)) {
+                window.location.href = `page6.html?type=${kiteType}`;
+            }
         });
 
-        function getKiteType() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const type = urlParams.get('type');
-            // 限制类型只能是swallow/butterfly/fish
-            return ['swallow', 'butterfly', 'fish'].includes(type) ? type : 'swallow';
-        }
+        // 8. 音乐开关功能（修复原代码变量命名错误）
+        const bgMusic = new Audio(""); // 替换为你的音乐路径
+        bgMusic.loop = true;
+        let isMusicPlaying = false; // 修复变量名错误
+
+        musicIcon.addEventListener('click', () => {
+            if (isMusicPlaying) {
+                bgMusic.pause();
+            } else {
+                bgMusic.play();
+            }
+            isMusicPlaying = !isMusicPlaying;
+        });
+                
     </script>
 </body>
 </html>

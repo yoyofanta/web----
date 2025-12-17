@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100;300;400&display=swap">
+    <title>糊纸步骤</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            background-image: url("素材最终/背景图/背景图.jpg");
+            background-size: cover;
+            background-position: center;
+            font-family: "Noto Sans SC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        /* 音乐图标 - 移动端适配尺寸 */
+        .music-icon {
+            position:absolute;
+            top:30px;
+            right:30px;
+            width:32px;
+            height:32px;
+            background-image:url("素材最终/封面/资源\ 24@0.5x.webp");
+            background-size:100% 100%;
+            background-repeat:no-repeat;
+            background-position: center;
+            cursor:pointer;
+            z-index: 999;
+        }
+
+        /* 步骤标签：扎/糊/绘，糊高亮放大 - 移动端适配 */
+        .step-tabs {
+            display:flex;
+            gap:10vw;
+            margin:8vh 0 3vh 0;
+            align-items: center;
+        }
+
+        .step-tab {
+            width: 15vw;
+            height: 15vw;
+            max-width: 70px;
+            max-height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.5vw;
+            background: transparent;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+
+        .step-tab.hu {
+            width:28vw;
+            height:28vw;
+            max-width: 120px;
+            max-height: 120px;
+            background: url("素材最终/风筝制作/资源\ 31@0.5x.webp")no-repeat center;
+            background-size: contain;
+            border: none;
+        }
+
+        .step-tab.za{
+            width:18vw;
+            height:18vw;
+            max-width: 80px;
+            max-height: 80px;
+            background: url("素材最终/风筝制作/资源\ 27@0.5x.webp")no-repeat center;
+            background-size: contain;
+            display: flex;
+            border: none;
+            align-items: center;
+            justify-content: center;
+            cursor:pointer;
+            transition: all 0.3s;
+        }
+
+        .step-tab.hui{
+            width:18vw;
+            height:18vw;
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 50%;
+            background: url("素材最终/风筝制作/资源\ 29@0.5x.webp")no-repeat center;
+            background-size: contain;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor:pointer;
+            transition: all 0.3s;
+        }
+
+        /* 骨架/糊纸展示容器 - 移动端适配高度 */
+        .skeleton-container {
+            width: 85%;
+            height: 40vh;
+            margin-bottom: 4vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .skeleton-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        #finalSkeleton {
+            display: block;
+        }
+
+        /* 选项框：浆糊/纱布/宣纸 - 移动端适配高度和内边距 */
+        .option-box {
+            width:85vw;
+            max-width: 700px;
+            height:20vw;
+            max-height: 120px;
+            background: url("素材最终/风筝制作/资源\ 80@0.5x.webp");
+            background-size: 100% 100%;
+            display:flex;
+            align-items: center;
+            justify-content: space-around;
+            padding:1vw 2vw;
+            position: relative;
+            z-index: 20;
+        }
+
+        .option-box::before {
+            content: "依次点击裱糊面料";
+            position: absolute;
+            top: -2.5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5vw;
+            color: #000;
+        }
+
+        .option-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            background: none;
+        }
+
+        .option-item.available {
+            pointer-events: all;
+            opacity: 0.9;
+        }
+
+        .option-item.used {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* 选项图标 - 移动端适配尺寸 */
+        .option-icon {
+            width: 10vw;
+            height: 10vw;
+            max-width: 50px;
+            max-height: 50px;
+            object-fit: contain;
+            margin-bottom: 0.3vw;
+        }
+
+        .option-text {
+            font-size: 3vw;
+            color: #000;
+            font-weight: 300;
+        }
+
+        /* 按钮组 - 移动端适配间距和尺寸 */
+        .btn-group {
+            display: flex;
+            gap: 20vw;
+            margin-top: 4vh;
+            z-index: 20;
+        }
+
+        .page-btn {
+            padding: 1.2vw 3.5vw;
+            background: url("素材最终/风筝制作/资源 89@0.5x.webp");
+            background-size: 100% 100%;
+            font-size: 3vw;
+            color: #000;
+            cursor: pointer;
+            border: none;
+            opacity: 0.5;
+            pointer-events: none;
+            width: 25vw;
+            max-width: 90px;
+            height: 8vw;
+            max-height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-btn.enable {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* 移动端专属适配 - 小屏优化 */
+        @media screen and (max-width: 375px) {
+            .step-tabs {
+                gap: 6vw;
+            }
+            .option-box {
+                height: 28vw;
+            }
+            .btn-group {
+                gap: 15vw;
+            }
+            .page-btn {
+                width: 30vw;
+                height: 10vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="music-icon" id="musicIcon"></div>
+
+    <!-- 步骤标签：扎/糊/绘 -->
+    <div class="step-tabs">
+        <div class="step-tab za"></div>
+        <div class="step-tab hu"></div>
+        <div class="step-tab hui"></div>
+    </div>
+
+    <!-- 展示容器：初始显示骨架，点击材料显示对应糊纸图 -->
+    <div class="skeleton-container" id="skeletonContainer">
+        <img src="骨架/骨架/IMG_2713.PNG" alt="燕子骨架" class="skeleton-img" id="finalSkeleton">
+        
+        <!-- 浆糊：三种动物对应的图 -->
+        <img src="素材最终/风筝制作/步骤图/燕 浆糊.PNG" alt="燕子浆糊" class="skeleton-img" id="paste-swallow">
+        <img src="素材最终/风筝制作/步骤图/蝶 浆糊.PNG" alt="蝴蝶浆糊" class="skeleton-img" id="paste-butterfly">
+        <img src="素材最终/风筝制作/步骤图/鱼 浆糊.PNG" alt="鱼浆糊" class="skeleton-img" id="paste-fish">
+        
+        <!-- 纱布：三种动物对应的图 -->
+        <img src="素材最终/风筝制作/步骤图/燕 纱布.PNG" alt="燕子纱布" class="skeleton-img" id="cloth-swallow">
+        <img src="素材最终/风筝制作/步骤图/蝶 纱布.PNG" alt="蝴蝶纱布" class="skeleton-img" id="cloth-butterfly">
+        <img src="素材最终/风筝制作/步骤图/鱼 纱布.PNG" alt="鱼纱布" class="skeleton-img" id="cloth-fish">
+        
+        <!-- 宣纸：三种动物对应的图 -->
+        <img src="素材最终/风筝制作/步骤图/燕 宣纸.PNG" alt="燕子宣纸" class="skeleton-img" id="paper-swallow">
+        <img src="素材最终/风筝制作/步骤图/蝶 宣纸.PNG" alt="蝴蝶宣纸" class="skeleton-img" id="paper-butterfly">
+        <img src="素材最终/风筝制作/步骤图/鱼 宣纸.PNG" alt="鱼宣纸" class="skeleton-img" id="paper-fish">
+    </div>
+
+    <!-- 选项框：浆糊/纱布/宣纸 -->
+    <div class="option-box">
+        <div class="option-item" data-step="1" data-type="paste">
+            <img src="素材最终/风筝制作/资源 39@0.5x.webp" alt="浆糊图标" class="option-icon">
+            <span class="option-text">浆糊</span>
+        </div>
+        <div class="option-item" data-step="2" data-type="cloth">
+            <img src="素材最终/风筝制作/资源 40@0.5x.webp" alt="纱布图标" class="option-icon">
+            <span class="option-text">纱布</span>
+        </div>
+        <div class="option-item" data-step="3" data-type="paper">
+            <img src="素材最终/风筝制作/资源 38@0.5x.webp" alt="宣纸图标" class="option-icon">
+            <span class="option-text">宣纸</span>
+        </div>
+    </div>
+
+    <!-- 按钮组：上一步（第五页）、下一步（第七页） -->
+    <div class="btn-group">
+        <button class="page-btn enable" id="prevBtn">上一步</button>
+        <button class="page-btn" id="nextBtn" disabled>下一步</button>
+    </div>
+
+    <script>
+        // 1. 获取URL参数（第五页传递的骨架类型：swallow/butterfly/fish）
+        const urlParams = new URLSearchParams(window.location.search);
+        const kiteType = urlParams.get('type') || 'swallow';
+
+        // 2. DOM元素获取
+        const optionItems = document.querySelectorAll('.option-item');
+        const skeletonImgs = document.querySelectorAll('.skeleton-img');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const musicIcon = document.getElementById('musicIcon');
+        const finalSkeleton = document.getElementById('finalSkeleton');
+
+        // 3. 状态管理
+        let currentStep = 0;
+        const totalSteps = 3;
+        const clickedSteps = new Set();
+
+        // 4. 初始化：解锁第一个选项（浆糊）+ 替换对应骨架图
+        optionItems[0].classList.add('available');
+        replaceFinalSkeleton();
+
+        // 5. 替换初始骨架图为对应类型
+        function replaceFinalSkeleton() {
+            const skeletonSrcMap = {
+                swallow: "骨架/骨架/IMG_2713.PNG",
+                butterfly: "骨架/骨架/IMG_2721.PNG",
+                fish: "骨架/骨架/IMG_2717.PNG",
+            };
+            finalSkeleton.src = skeletonSrcMap[kiteType] || skeletonSrcMap.swallow;
+        }
+
+        // 6. 选项点击核心逻辑：按动物类型加载对应糊纸图
+        optionItems.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                const step = parseInt(item.getAttribute('data-step'));
+                clickedSteps.add(step);
+
+                // 隐藏所有图片
+                skeletonImgs.forEach(img => img.style.display = 'none');
+
+                // 获取当前选项类型（浆糊/纱布/宣纸），拼接对应动物的图片ID
+                const optionType = item.getAttribute('data-type');
+                const targetImgId = `${optionType}-${kiteType}`;
+                
+                // 显示当前动物的对应糊纸图
+                const targetImg = document.getElementById(targetImgId);
+                if (targetImg) targetImg.style.display = 'block';
+
+                // 标记当前选项为已使用，解锁下一个
+                item.classList.add('used');
+                item.classList.remove('available');
+                currentStep = step;
+
+                // 解锁下一个选项（非最后一步）
+                if (index < totalSteps - 1) {
+                    optionItems[index + 1].classList.add('available');
+                } else {
+                    // 最后一步（宣纸）解锁下一步按钮
+                    nextBtn.classList.add('enable');
+                    nextBtn.disabled=false;
+                }
+            });
+        });
+
+        // 7. 上一步按钮：跳转到第五页（携带骨架类型参数）
+        prevBtn.addEventListener('click', () => {
+            window.location.href = `page5.html?type=${kiteType}`;
+        });
+
+        // 8. 下一步按钮：跳转到第七页（携带骨架类型参数）
+        nextBtn.addEventListener('click', () => {
+            if (clickedSteps.has(totalSteps)) {
+                window.location.href = `page7.html?type=${kiteType}`;
+            }
+        });
+
+        // 9. 音乐开关功能（移动端兼容）
+        const bgMusic = new Audio(""); // 替换为你的音乐文件路径
+        bgMusic.loop = true;
+        let isMusicPlaying = false;
+
+        musicIcon.addEventListener('click', () => {
+            if (isMusicPlaying) {
+                bgMusic.pause();
+            } else {
+                bgMusic.play().catch(err => console.log('音乐播放失败:', err));
+            }
+            isMusicPlaying = !isMusicPlaying;
+        });
+    </script>
+</body>
+</html>
