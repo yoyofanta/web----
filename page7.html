@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100;300;400&display=swap">
     <title>彩绘步骤</title>
+    <script src="素材最终/js/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -108,6 +109,7 @@
             margin-bottom: 2vh;
             display: flex;
             position: relative;
+            background-color: transparent;
         }
 
         .kite-layer{
@@ -121,10 +123,12 @@
             display: none;
             transition: opacity 0.3s ease-in-out;
             opacity: 1;
+            backface-visibility: hidden;
         }
 
         .kite-layer.fade-out {
             opacity: 0;
+            transform: translate(-50%, -50%) scale(0.98);
         }
 
         #base-layer {
@@ -159,6 +163,7 @@
             justify-content: space-around;
             margin-bottom: 3vh;
             z-index: 20;
+            touch-action: manipulation;
         }
 
         .fourth-option-item {
@@ -203,6 +208,7 @@
             padding:1vw 2vw;
             position: relative;
             z-index: 20;
+            touch-action: manipulation;
         }
 
         .option-box.pattern::before {
@@ -220,6 +226,7 @@
             transform: translateX(-50%);
             font-size: 3.5vw;
             color: #000;
+            -webkit-font-smoothing: antialiased;
         }
 
         .option-item {
@@ -230,6 +237,13 @@
             background: none;
             transition: transform 0.2s ease;
             -webkit-tap-highlight-color: transparent;
+            min-width: 15vw;
+            min-height: 15vw;
+            justify-content: center;
+        }
+
+        .option-item:hover {
+            opacity: 0.9;
         }
 
         .option-item:active {
@@ -244,12 +258,14 @@
             object-fit: contain;
             margin-bottom: 0.5vw;
             border-radius: 50%;
+            backface-visibility: hidden;
         }
 
         .option-text {
             font-size: 3vw;
             color: #000;
             font-weight: 300;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* 按钮组：上一步/去放飞（去放飞初始禁用） */
@@ -289,7 +305,6 @@
             transform: scale(0.95);
         }
 
-        /* 移动端适配 */
         @media screen and (max-width: 375px) {
             .step-tabs { gap: 6vw; }
             .kite-container { height: 40vh; }
@@ -303,12 +318,40 @@
             .page-btn {
                 width: 30vw;
                 height: 10vw;
+                font-size: 4vw;
             }
             .music-icon {
                 width:28px;
                 height:28px;
                 top:20px;
                 right:20px;
+            }
+            .option-text { font-size: 4vw; }
+            .fourth-option-text { font-size: 3vw; }
+        }
+
+        /* 平板适配 */
+        @media screen and (min-width: 768px) {
+            .option-text, .fourth-option-text, .option-box::before, .page-btn {
+                font-size: 16px;
+            }
+            .option-icon {
+                width: 50px;
+                height: 50px;
+            }
+            .option-item {
+                min-width: 80px;
+                min-height: 80px;
+            }
+            .fourth-option-item {
+                width: 80px;
+                height: 40px;
+            }
+            .step-tabs { gap: 50px; }
+            .btn-group { gap: 120px; }
+            .page-btn {
+                width: 120px;
+                height: 40px;
             }
         }
     </style>
@@ -327,7 +370,7 @@
     </div>
 
     <!-- 风筝分层容器：5层叠加 -->
-    <div class="kite-container">
+    <div class="kite-container" id="capture-container">
         <img src="" alt="风筝宣纸底" class="kite-layer" id="base-layer">
         <img src="" alt="风筝纹样" class="kite-layer" id="pattern-layer">
         <img src="" alt="风筝面颜色" class="kite-layer" id="face-layer">
@@ -456,52 +499,80 @@
 
             // 3. 初始化：加载对应动物的宣纸底图
             const baseLayer = document.getElementById('base-layer');
-            baseLayer.src = resourceMap[kiteType].base;
+            baseLayer.src = resourceMap[kiteType]?.base || '';
+            baseLayer.onerror = () => console.warn(`底图加载失败: ${resourceMap[kiteType].base}`);
+
+            // 预加载图片
+            const preloadImages = () => {
+                const allLayers = ['pattern', 'face', 'wing', 'body'];
+                const patterns = ['bat', 'lotus', 'lion'];
+                const colors = ['feihong', 'baolan', 'yingtao', 'qihei', 'jingbai', 'gaose'];
+
+                patterns.forEach(pattern => {
+                    allLayers.forEach(layer => {
+                        if (layer === 'pattern') {
+                            const img = new Image();
+                            img.src = resourceMap[kiteType][pattern]?.pattern || '';
+                            img.onerror = () => console.warn(`预加载失败: ${img.src}`);
+                        } else {
+                            colors.forEach(color => {
+                                const img = new Image();
+                                img.src = resourceMap[kiteType][pattern]?.[layer]?.[color] || '';
+                                img.onerror = () => console.warn(`预加载失败: ${img.src}`);
+                            });
+                        }
+                    });
+                });
+            };
+            setTimeout(preloadImages, 500);
 
             // 4. 四级选项切换逻辑（修复步骤锁逻辑）
             const fourthOptionItems = document.querySelectorAll('.fourth-option-item');
             const optionBox = document.getElementById('optionBox');
             
             fourthOptionItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    const partType = item.getAttribute('data-type');
-                    const currentStepIndex = stepOrder.indexOf(partType);
+                item.addEventListener('touchstart', handleFourthOptionClick, { passive: false });
+                item.addEventListener('click', handleFourthOptionClick);
+            });
 
-                    // 步骤锁：必须按顺序选择（纹样→面→翅→身）
-                    if (currentStepIndex > currentMaxStep && currentStepIndex !== 0) {
-                        const stepNames = { pattern: '纹样', face: '面', wing: '翅', body: '身' };
-                        const prevStepName = stepNames[stepOrder[currentMaxStep]];
-                        alert(`请先完成【${prevStepName}】步骤`);
+            function handleFourthOptionClick(e) {
+                e.stopPropagation();
+                if (e.type === 'touchstart') e.preventDefault();
+
+                const item = this;
+                const partType = item.getAttribute('data-type');
+                const currentStepIndex = stepOrder.indexOf(partType);
+
+                if (currentStepIndex > currentMaxStep && currentStepIndex !== 0) {
+                    const stepNames = { pattern: '纹样', face: '面', wing: '翅', body: '身' };
+                    const prevStepName = stepNames[stepOrder[currentMaxStep]];
+                    alert(`请先完成【${prevStepName}】步骤`);
+                    return;
+                }
+
+                fourthOptionItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+
+                optionBox.innerHTML = '';
+                optionBox.classList.remove('pattern', 'color');
+
+                if (partType === 'pattern') {
+                    optionBox.classList.add('pattern');
+                    renderPatternOptions();
+                } else {
+                    if (!selectedPattern) {
+                        alert('请先选择纹样打底！');
+                        fourthOptionItems[0].classList.add('active');
+                        renderPatternOptions();
                         return;
                     }
+                    optionBox.classList.add('color');
+                    renderColorOptions(partType);
+                }
+                
+                bindOptionClick();
+            }
 
-                    // 更新选中状态
-                    fourthOptionItems.forEach(i => i.classList.remove('active'));
-                    item.classList.add('active');
-
-                    // 清空选型框并切换类型
-                    optionBox.innerHTML = '';
-                    optionBox.classList.remove('pattern', 'color');
-
-                    if (partType === 'pattern') {
-                        optionBox.classList.add('pattern');
-                        renderPatternOptions();
-                    } else {
-                        // 强制先选纹样
-                        if (!selectedPattern) {
-                            alert('请先选择纹样打底！');
-                            fourthOptionItems[0].classList.add('active');
-                            renderPatternOptions();
-                            return;
-                        }
-                        optionBox.classList.add('color');
-                        renderColorOptions(partType);
-                    }
-                    
-                    // 绑定选项点击事件
-                    bindOptionClick();
-                });
-            });
 
             // 5. 渲染纹样选项
             function renderPatternOptions() {
@@ -565,72 +636,77 @@
             function bindOptionClick() {
                 const optionItems = document.querySelectorAll('.option-item');
                 optionItems.forEach(item => {
-                    item.addEventListener('click', () => {
-                        const activeItem = document.querySelector('.fourth-option-item.active');
-                        if (!activeItem) return;
-                        
-                        const partType = activeItem.getAttribute('data-type');
-                        const selectValue = item.getAttribute('data-value');
-                        const targetLayer = document.getElementById(`${partType}-layer`);
-
-                        // 纹样选择逻辑（重置其他图层）
-                        if (partType === 'pattern') {
-                            selectedPattern = selectValue;
-                            
-                            // 渐变切换纹样图层
-                            targetLayer.classList.add('fade-out');
-                            setTimeout(() => {
-                                targetLayer.src = resourceMap[kiteType][selectValue].pattern;
-                                targetLayer.style.display = 'block';
-                                targetLayer.classList.remove('fade-out');
-                            }, 300);
-
-                            // 清空颜色图层
-                            ['face', 'wing', 'body'].forEach(type => {
-                                const layer = document.getElementById(`${type}-layer`);
-                                layer.src = '';
-                                layer.style.display = 'none';
-                            });
-
-                            // 重置状态
-                            currentMaxStep = 1; 
-                            selectedLayers.clear();
-                            selectedLayers.add('pattern');
-                            document.getElementById('flyBtn').classList.remove('enable');
-                            console.log('纹样选择完成，当前解锁步骤：', currentMaxStep); // 调试日志
-                            return;
-                        }
-
-                        // 颜色选择逻辑（渐变切换）
-                        targetLayer.classList.add('fade-out');
-                        setTimeout(() => {
-                            targetLayer.src = resourceMap[kiteType][selectedPattern][partType][selectValue];
-                            targetLayer.style.display = 'block';
-                            targetLayer.classList.remove('fade-out');
-                        }, 300);
-
-                        // 修复：定义currentStepIndex变量
-                        const currentStepIndex = stepOrder.indexOf(partType);
-                        // 更新步骤锁：解锁下一级
-                        if (currentStepIndex >= currentMaxStep) {
-                            currentMaxStep = currentStepIndex + 1;
-                        }
-
-                        // 标记已选图层
-                        selectedLayers.add(partType);
-                        console.log(`选中${partType}，当前解锁步骤：${currentMaxStep}，已选图层：${Array.from(selectedLayers)}`); // 调试日志
-
-                        // 全部选完解锁“去放飞”
-                        if (selectedLayers.has('pattern') && selectedLayers.has('face') && 
-                            selectedLayers.has('wing') && selectedLayers.has('body')) {
-                            document.getElementById('flyBtn').classList.add('enable');
-                            document.getElementById('flyBtn').disabled = false;
-                        }
-                    });
+                    item.addEventListener('touchstart', handleOptionClick, { passive: false });
+                    item.addEventListener('click', handleOptionClick);
                 });
             }
 
-            // 初始绑定纹样点击事件
+            function handleOptionClick(e) {
+                e.stopPropagation();
+                if (e.type === 'touchstart') e.preventDefault();
+
+                const item = this;
+                const activeItem = document.querySelector('.fourth-option-item.active');
+                if (!activeItem) return;
+                
+                const partType = activeItem.getAttribute('data-type');
+                const selectValue = item.getAttribute('data-value');
+                const targetLayer = document.getElementById(`${partType}-layer`);
+                if (!targetLayer) return;
+
+                if (partType === 'pattern') {
+                    selectedPattern = selectValue;
+                    
+                    targetLayer.classList.add('fade-out');
+                    setTimeout(() => {
+                        targetLayer.src = resourceMap[kiteType][selectValue]?.pattern || '';
+                        targetLayer.style.display = 'block';
+                        setTimeout(() => {
+                            targetLayer.classList.remove('fade-out');
+                        }, 50);
+                    }, 300);
+
+                    ['face', 'wing', 'body'].forEach(type => {
+                        const layer = document.getElementById(`${type}-layer`);
+                        layer.src = '';
+                        layer.style.display = 'none';
+                        layer.classList.remove('fade-out');
+                    });
+
+                    currentMaxStep = 1;
+                    selectedLayers.clear();
+                    selectedLayers.add('pattern');
+                    document.getElementById('flyBtn').classList.remove('enable');
+                    document.getElementById('flyBtn').disabled = true;
+                    console.log(`✅ 选中纹样：${selectValue}，解锁步骤：面`);
+                    return;
+                }
+
+                targetLayer.classList.add('fade-out');
+                setTimeout(() => {
+                    const colorSrc = resourceMap[kiteType][selectedPattern]?.[partType]?.[selectValue] || '';
+                    targetLayer.src = colorSrc;
+                    targetLayer.style.display = 'block';
+                    setTimeout(() => {
+                        targetLayer.classList.remove('fade-out');
+                    }, 50);
+                }, 300);
+
+                const currentStepIndex = stepOrder.indexOf(partType);
+                if (currentStepIndex >= currentMaxStep) {
+                    currentMaxStep = currentStepIndex + 1;
+                }
+
+                selectedLayers.add(partType);
+                console.log(`✅ 选中${partType}${selectValue}，已选图层：${Array.from(selectedLayers)}`);
+
+                if (selectedLayers.size === 4) {
+                    document.getElementById('flyBtn').classList.add('enable');
+                    document.getElementById('flyBtn').disabled = false;
+                    console.log('✅ 所有图层选择完成，解锁「去放飞」');
+                }
+            }
+
             bindOptionClick();
 
             // 8. 页面跳转逻辑（渐变过渡，与第五/六页统一）
@@ -641,27 +717,70 @@
                 }, 300);
             });
 
-            document.getElementById('flyBtn').addEventListener('click', () => {
+            // 4. 改造「去放飞」按钮：先截图，再跳转
+            document.getElementById('flyBtn').addEventListener('click', async () => {
                 if (selectedLayers.size < 4) return;
-                document.body.style.opacity = 0;
-                setTimeout(() => {
-                    window.location.href = `page8.html?type=${kiteType}&pattern=${selectedPattern}`;
-                }, 300);
+
+                // 4.1 隐藏非风筝元素（避免截图包含按钮/选项）
+                const hideElements = [
+                    document.querySelector('.step-tabs'),
+                    document.querySelector('.fourth-option-box'),
+                    document.querySelector('.option-box'),
+                    document.querySelector('.btn-group'),
+                    document.getElementById('musicIcon')
+                ];
+                hideElements.forEach(el => el.style.display = 'none');
+
+                // 4.2 使用 html2canvas 截图风筝容器
+                try {
+                    const captureContainer = document.getElementById('capture-container');
+                    const canvas = await html2canvas(captureContainer, {
+                        useCORS: true, // 解决跨域图片问题
+                        backgroundColor: null, // 背景透明
+                        scale: window.devicePixelRatio || 1 // 高清截图
+                    });
+                    // 转为 Base64 编码（PNG 格式）
+                    const kiteBase64 = canvas.toDataURL('image/png');
+
+                    // 4.3 恢复隐藏元素
+                    hideElements.forEach(el => el.style.display = '');
+
+                    // 关键：将Base64和风筝类型存入localStorage（替代URL传参）
+                    localStorage.setItem('diyKiteBase64', kiteBase64);
+                    localStorage.setItem('diyKiteType', kiteType);
+
+                    // 页面淡出 + 跳转（无URL参数）
+                    document.body.style.opacity = 0;
+                    setTimeout(() => {
+                        window.location.href = 'page8.html'; // 仅跳转，不传参
+                    }, 300);
+
+                } catch (err) {
+                    // 出错时恢复元素
+                    hideElements.forEach(el => el.style.display = '');
+                    console.error('截图失败:', err);
+                    alert('风筝生成失败，请重试！');
+                }
             });
 
-            // 9. 音乐控制（与第五/六页统一逻辑）
+
+            // ========== 音乐控制 ==========
             const bgMusic = document.getElementById('bgMusic');
+            const musicIcon = document.getElementById('musicIcon');
             let isMusicPlaying = false;
             
-            document.getElementById('musicIcon').addEventListener('click', () => {
+            musicIcon.addEventListener('click', () => {
                 try {
                     if (isMusicPlaying) {
                         bgMusic.pause();
+                        musicIcon.classList.remove('playing');
                     } else {
                         bgMusic.play().catch(err => {
                             console.log('音乐播放需要用户交互:', err);
-                            bgMusic.play();
+                            bgMusic.load();
+                            setTimeout(() => bgMusic.play(), 100);
                         });
+                        musicIcon.classList.add('playing');
                     }
                     isMusicPlaying = !isMusicPlaying;
                 } catch (e) {
@@ -669,18 +788,26 @@
                 }
             });
 
-            // 页面离开时暂停音乐
             window.addEventListener('beforeunload', () => {
                 bgMusic.pause();
             });
 
-            // 10. 图片加载错误处理
+            // ========== 错误处理 ==========
             document.querySelectorAll('.kite-layer').forEach(img => {
                 img.onerror = function() {
                     this.style.display = 'none';
-                    console.log(`图片加载失败: ${this.src}`);
+                    console.error(`图片加载失败: ${this.src}`);
                 }
             });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.addEventListener('dragstart', (e) => e.preventDefault());
+            document.addEventListener('selectstart', (e) => e.preventDefault());
         });
     </script>
 </body>
