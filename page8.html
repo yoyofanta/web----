@@ -16,7 +16,6 @@
             background-image: url("images/2/background.jpg");
             background-size: cover;
             background-repeat: no-repeat;
-            background-color: #f8f5e6;
             background-position: center;
             height: 100vh;
             overflow: hidden;
@@ -387,7 +386,7 @@
                     <div class="kite-text" id="final-text">我的
 潍坊风筝</div>
                     <div class="qrcode-container" id="qrcode-container">
-                        <img id="qrcode-img" src="素材最终/web 码.png" alt="扫码制作二维码">
+                        <img id="qrcode-img" src="images/2/ewm.png" alt="扫码制作二维码">
                         <div class="qrcode-text" id="qrcode-text">扫码制作</div>
                     </div>
                 </div>
@@ -653,7 +652,7 @@
         async function initCamera() {
             try {
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    alert('你的浏览器不支持相机功能,请使用Chrome/Edge/Firefox');
+                    alert('你的浏览器不支持相机功能，请使用Chrome/Edge/Firefox');
                     return;
                 }
 
@@ -676,7 +675,7 @@
             } catch (err) {
                 let errMsg = '';
                 if (err.name === 'NotAllowedError') errMsg = '请允许相机权限（地址栏左侧相机图标→允许）';
-                else if (err.name === 'NotSupportedError') errMsg = '需在本地服务器运行(如VSCode Live Server),禁止双击HTML文件';
+                else if (err.name === 'NotSupportedError') errMsg = '需在本地服务器运行（如VSCode Live Server），禁止双击HTML文件';
                 else errMsg = '相机初始化失败：' + err.message;
                 alert(errMsg);
                 isCameraReady = false;

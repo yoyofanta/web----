@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <title>Document</title>
+    <title>鸢缘 - 潍坊风筝</title>
     <style>
         *{
             margin:0;
@@ -18,8 +18,8 @@
 
         html,body{
             overflow:hidden !important;
-            height: 100% !important;     /* 固定高度，避免滚动条 */
-            touch-action: none !important; /* 禁用所有触摸行为（滑动、缩放等） */
+            height: 100% !important;
+            touch-action: none !important;
             -webkit-overflow-scrolling: auto !important; 
         }
 
@@ -59,7 +59,6 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: left center;
-
             z-index: 1.5;
         }
 
@@ -191,8 +190,7 @@
         }
 
         .music-icon.active{
-            transform: rotate(360deg);
-            animation: rotateMusic 3s linear infinite;
+            animation: rotateMusic 3s linear infinite; /* 仅保留旋转动画，避免样式冲突 */
         }
 
         @keyframes float{
@@ -241,7 +239,6 @@
             }
         }
 
-        /* 响应式适配 - 大屏平板 */
         @media screen and (min-width: 768px) {
             .kite-img{
                 width:50%;
@@ -286,19 +283,16 @@
         <div class="slide-tip">
             <img src="素材最终/封面/资源 16@0.5x.webp" alt="向上滑动" class="slide-tip-img">
         </div>
-        <div class="music-icon" id="musicIcon">
-        </div>
+        <div class="music-icon" id="musicIcon"></div>
     </div>
 
     <script>
-        // ========== 核心1：拦截所有触摸滑动事件，禁止默认行为 ==========
-        // 拦截touchmove（滑动的核心事件）
+        // ========== 1. 禁止默认滑动/滚轮行为 ==========
         document.addEventListener('touchmove', function(e) {
-            e.preventDefault(); // 禁止所有触摸滑动的默认行为
-            e.stopPropagation(); // 阻止事件冒泡
-        }, { passive: false }); // 必须设置passive: false，才能生效preventDefault
+            e.preventDefault();
+            e.stopPropagation();
+        }, { passive: false });
 
-        // 拦截touchstart/touchend的额外行为（防止惯性滚动）
         document.addEventListener('touchstart', function(e) {
             e.stopPropagation();
         }, { passive: true });
@@ -307,81 +301,107 @@
             e.stopPropagation();
         }, { passive: true });
 
-        let startY=0;
-        // 增加passive: true提升滑动性能
-        document.addEventListener('touchstart',(e)=>{
-            startY=e.touches[0].clientY;
-        }, { passive: true });
-
-        document.addEventListener('touchend',(e)=>{
-            const endY=e.changedTouches[0].clientY;
-            // 增加阈值，避免误触
-            if(startY-endY>80){
-                // 延迟跳转，增加滑动反馈
-                setTimeout(()=>{
-                    window.location.href="page2-3.html";
-                }, 100);
-            }
-        });
-
-         // 2. 音乐播放逻辑修复（适配移动端）
-        const musicIcon = document.getElementById('musicIcon');
-        let isPlaying = false;
-        // 创建音频实例并设置循环
-        const bgMusic = new Audio("素材最终/music.m4a");
-        bgMusic.loop = true; // 设置循环播放
-        bgMusic.preload = "metadata"; // 预加载音频
-
-
-        // 首次触摸页面时初始化音频（解决部分浏览器限制）
-        document.addEventListener('touchstart', initAudio, { once: true });
-        
-        function initAudio() {
-            bgMusic.load(); // 初始化音频
-            // 静音预加载（部分浏览器需要）
-            bgMusic.muted = true;
-            bgMusic.play().then(() => {
-                bgMusic.pause();
-                bgMusic.muted = false;
-            }).catch(err => console.log("音频预加载：", err));
-        }
-
-        // 音乐图标点击事件
-        musicIcon.addEventListener('click', async () => {
-            try {
-                if (isPlaying) {
-                    bgMusic.pause();
-                    musicIcon.classList.remove('active');
-                } else {
-                    // 强制重新加载后播放（解决缓存问题）
-                    await bgMusic.play();
-                    musicIcon.classList.add('active');
-                }
-                isPlaying = !isPlaying;
-            } catch (err) {
-                console.error("音乐播放失败：", err);
-                // 降级方案：提示用户检查路径/权限
-                alert("音频播放失败，请检查音频文件路径或浏览器权限");
-                // 手动触发重新加载
-                bgMusic.load();
-                setTimeout(() => bgMusic.play(), 500);
-            }
-        });
-
-        // 页面隐藏时暂停音乐，节省资源
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden && isPlaying) {
-                bgMusic.pause();
-                isPlaying = false;
-                musicIcon.classList.remove('active');
-            }
-        });
-
         document.addEventListener('wheel', function(e) {
             e.preventDefault();
             e.stopPropagation();
         }, { passive: false });
+
+        // ========== 2. 滑动跳转逻辑 ==========
+        let startY = 0;
+        document.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            const endY = e.changedTouches[0].clientY;
+            if (startY - endY > 80) {
+                setTimeout(() => {
+                    window.location.href = "page2-3.html";
+                }, 100);
+            }
+        });
+
+        // ========== 3. 音乐播放核心逻辑（精准控制暂停/播放） ==========
+        const musicIcon = document.getElementById('musicIcon');
+        let isPlaying = false; // 播放状态标记
+        // 创建音频实例
+        const bgMusic = new Audio("素材最终/music.m4a");
+        bgMusic.loop = true; // 循环播放
+        bgMusic.preload = "auto"; // 预加载音频
+
+        // 核心：播放/暂停切换函数（统一逻辑）
+        async function toggleMusic() {
+            try {
+                if (isPlaying) {
+                    // 暂停逻辑
+                    bgMusic.pause();
+                    musicIcon.classList.remove('active');
+                    isPlaying = false;
+                    console.log("音乐已暂停");
+                } else {
+                    // 播放逻辑
+                    await bgMusic.play();
+                    musicIcon.classList.add('active');
+                    isPlaying = true;
+                    console.log("音乐已播放");
+                }
+            } catch (err) {
+                console.error("音乐控制失败：", err);
+                // 降级处理：重新加载音频
+                bgMusic.load();
+                setTimeout(() => {
+                    if (!isPlaying) bgMusic.play().catch(() => {
+                        alert("音频播放失败，请检查文件路径或浏览器权限");
+                    });
+                }, 500);
+            }
+        }
+
+        // 自动播放尝试（页面加载后）
+        async function autoPlayMusic() {
+            try {
+                // 第一步：直接尝试播放
+                await bgMusic.play();
+                isPlaying = true;
+                musicIcon.classList.add('active');
+                console.log("音乐自动播放成功");
+            } catch (err) {
+                console.log("自动播放受限，等待用户交互：", err);
+                // 第二步：监听用户首次交互（触摸/点击）后自动播放
+                const triggerPlay = () => {
+                    toggleMusic(); // 调用统一的切换函数
+                    // 移除监听，避免重复触发
+                    document.removeEventListener('touchstart', triggerPlay);
+                    document.removeEventListener('click', triggerPlay);
+                };
+                document.addEventListener('touchstart', triggerPlay, { once: true });
+                document.addEventListener('click', triggerPlay, { once: true });
+            }
+        }
+
+        // 音乐图标点击事件（核心：精准暂停/播放）
+        musicIcon.addEventListener('click', toggleMusic);
+
+        // 页面隐藏/显示时的状态同步
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // 页面隐藏：暂停音乐
+                if (isPlaying) toggleMusic();
+            } else {
+                // 页面恢复：若之前是播放状态，自动恢复
+                if (!isPlaying && bgMusic.currentTime > 0) toggleMusic();
+            }
+        });
+
+        // 微信环境适配（解决微信自动播放限制）
+        if (typeof WeixinJSBridge !== 'undefined') {
+            WeixinJSBridge.invoke('getNetworkType', {}, autoPlayMusic);
+        } else {
+            document.addEventListener('WeixinJSBridgeReady', autoPlayMusic);
+        }
+
+        // 页面加载完成后启动自动播放
+        window.addEventListener('DOMContentLoaded', autoPlayMusic);
     </script>
-    
 </body>
 </html>

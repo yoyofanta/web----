@@ -252,16 +252,15 @@
 
         .music-btn {
             position: absolute;
-            top: 30px; /* 与第四页一致 */
-            right: 30px; /* 与第四页一致 */
-            width: 32px; /* 与第四页一致 */
-            height: 32px; /* 与第四页一致 */
+            top: 30px; /* 与首页一致 */
+            right: 30px; /* 与首页一致 */
+            width: 32px; /* 与首页一致 */
+            height: 32px; /* 与首页一致 */
             cursor: pointer;
             background-size:100% 100%;
             background-repeat:no-repeat;
             transition: transform 0.2s ease;
             z-index: 999; 
-
         }
 
         .music-btn img {
@@ -306,6 +305,12 @@
                 width: 0.35rem;
                 height: 0.55rem;
             }
+            .music-btn {
+                width: 28px;
+                height: 28px;
+                top: 20px;
+                right: 20px;
+            }
         }
 
         /* 大屏适配 */
@@ -324,6 +329,12 @@
             .start-btn {
                 width: 35%;
             }
+            .music-btn {
+                width: 40px;
+                height: 40px;
+                top: 30px;
+                right: 30px;
+            }
         }
     </style>
 </head>
@@ -331,7 +342,8 @@
     <div class="container">
         <img src="素材最终/背景图/背景图.jpg" class="bgimg" alt="背景图">
         
-        <div class="music-btn">
+        <!-- 修复：给音乐按钮添加ID -->
+        <div class="music-btn" id="musicBtn">
             <img src="素材最终/风筝制作/资源 24@0.5x.webp" alt="音乐开关" id="musicIcon">
         </div>
 
@@ -500,6 +512,27 @@
             }, 250);
         }
 
+        // ========== 音乐播放逻辑（与首页一致） ==========
+        // 自动播放函数
+        async function autoPlayMusic() {
+            try {
+                await bgMusic.play();
+                isMusicPlaying = true;
+                musicBtn.classList.add('active');
+                console.log("第二页音乐自动播放成功");
+            } catch (err) {
+                console.log("第二页自动播放受限，等待用户交互：", err);
+                // 监听用户首次交互后播放
+                const triggerPlay = () => {
+                    toggleMusic();
+                    document.removeEventListener('touchstart', triggerPlay);
+                    document.removeEventListener('click', triggerPlay);
+                };
+                document.addEventListener('touchstart', triggerPlay, { once: true });
+                document.addEventListener('click', triggerPlay, { once: true });
+            }
+        }
+
         // 初始化音频
         function initAudio() {
             bgMusic.load();
@@ -507,10 +540,10 @@
             bgMusic.play().then(() => {
                 bgMusic.pause();
                 bgMusic.muted = false;
-            }).catch(err => console.log("音频预加载：", err));
+            }).catch(err => console.log("第二页音频预加载：", err));
         }
 
-        // 音乐开关
+        // 音乐开关（统一切换逻辑）
         function toggleMusic() {
             try {
                 if (isMusicPlaying) {
@@ -518,7 +551,7 @@
                     musicBtn.classList.remove('active');
                 } else {
                     bgMusic.play().catch(err => {
-                        console.error("音乐播放失败：", err);
+                        console.error("第二页音乐播放失败：", err);
                         alert("请先点击页面任意位置，再尝试播放音乐");
                         initAudio();
                     });
@@ -526,20 +559,20 @@
                 }
                 isMusicPlaying = !isMusicPlaying;
             } catch (err) {
-                console.error("音乐控制异常：", err);
+                console.error("第二页音乐控制异常：", err);
                 alert("音频播放失败，请检查文件路径");
             }
         }
 
         // 初始化
         function init() {
-            // 获取DOM
+            // 获取DOM（修复：正确获取音乐按钮ID）
             kiteImg = document.getElementById("kiteImg");
             kiteName = document.getElementById("kiteName");
             musicIcon = document.getElementById("musicIcon");
             kiteBgImg = document.getElementById("kiteBgImg");
             bgMusic = document.getElementById("bgMusic");
-            musicBtn = document.getElementById("musicBtn");
+            musicBtn = document.getElementById("musicBtn"); // 修复：ID匹配
 
             // 预加载图片
             preloadAllImages();
@@ -560,24 +593,30 @@
                 kiteBgImg.style.opacity = 0.85;
             }, 200);
 
-            // 绑定音乐事件（与第四页一致，支持touchstart+click）
+            // 绑定音乐事件（支持touchstart+click，与首页一致）
             musicBtn.addEventListener("click", toggleMusic);
             musicBtn.addEventListener("touchstart", (e) => {
                 e.preventDefault();
                 toggleMusic();
             }, { passive: false });
 
-            // 初始化音频（与第四页逻辑一致）
+            // 初始化音频（与首页逻辑一致）
             document.addEventListener('touchstart', initAudio, { once: true });
 
-            // 页面隐藏暂停音乐（与第四页一致）
+            // 页面隐藏暂停音乐（与首页一致）
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden && isMusicPlaying) {
                     bgMusic.pause();
                     isMusicPlaying = false;
                     musicBtn.classList.remove('active');
+                } else if (!document.hidden && isMusicPlaying) {
+                    // 页面恢复时继续播放
+                    bgMusic.play().catch(() => {});
                 }
             });
+
+            // 页面加载后尝试自动播放音乐
+            autoPlayMusic();
         }
 
         // DOM加载完成初始化

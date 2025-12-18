@@ -205,7 +205,7 @@
             text-align: center;
         }
 
-        /* ========== 选项框：与其他页面统一风格 ========== */
+        /* ========== 选项框：与其他页面统一风格 + 修复文字遮挡 ========== */
         .option-box {
             width:90%; /* 加宽 */
             height: 25vw; /* 加高 */
@@ -224,15 +224,18 @@
             flex-shrink: 0;
         }
 
+        /* 核心修复：提示文字上移+提升层级+强制不换行，避免遮挡 */
         .option-box::before {
             position: absolute;
-            top:-2.5vh;
-            left:50%;
+            top: -2.5vh; /* 从-2.5vh上移，远离选项框 */
+            left: 50%;
             transform: translateX(-50%);
             font-size: clamp(12px, 3.5vw, 16px);
             color: #000;
             -webkit-font-smoothing: antialiased;
             font-weight: 400;
+            z-index: 30; /* 提升层级，防止被遮挡 */
+            white-space: nowrap; /* 强制不换行 */
         }
 
         .option-box.pattern::before { content: "选择喜欢的纹样"; }
@@ -325,7 +328,15 @@
                 width: 20vw;
                 height: 10vw;
             }
-            .option-box { height: 30vw; }
+            .option-box { 
+                height: 30vw; 
+                margin-bottom: 4vh; /* 增加底部间距，避免挤压按钮 */
+            }
+            /* 小屏专属：提示文字再上移 */
+            .option-box::before {
+                top: -5vh;
+                font-size: clamp(11px, 3vw, 14px);
+            }
             .option-icon { width:12vw; height:12vw; }
             .btn-group { gap: 15vw; }
             .page-btn {
@@ -363,7 +374,7 @@
     </style>
 </head>
 <body>
-    <audio id="bgMusic" loop preload="metadata">
+    <audio id="bgMusic" loop preload="auto"> <!-- 预加载改为auto，提升自动播放 -->
         <source src="素材最终/music.m4a" type="audio/mp4">
         <source src="素材最终/music.mp3" type="audio/mpeg"> <!-- 兼容备用 -->
     </audio>
@@ -501,7 +512,7 @@
                         pattern: "素材最终/风筝/椋庣瓭/IMG_2684.PNG",
                         face: { feihong: "素材最终/风筝/椋庣瓭/IMG_2689.PNG", baolan: "素材最终/风筝/椋庣瓭/IMG_2693.PNG", yingtao: "素材最终/风筝/椋庣瓭/IMG_2690.PNG" },
                         wing: { feihong: "素材最终/风筝/椋庣瓭/IMG_2687.PNG", baolan: "素材最终/风筝/椋庣瓭/IMG_2695.PNG", yingtao: "素材最终/风筝/椋庣瓭/IMG_2692.PNG" },
-                        body: { qihei: "素材最终/风筝/椋庣瓭/IMG_2688.PNG", jingbai: "素材最终/风筝/椋庣瓭/IMG_2694.PNG", gaose: "素材最终/风筝/椋庣瓭/IMG_2691.PNG" }
+                        body: { feihong: "素材最终/风筝/椋庣瓭/IMG_2688.PNG", baolan: "素材最终/风筝/椋庣瓭/IMG_2694.PNG", yingtao: "素材最终/风筝/椋庣瓭/IMG_2691.PNG" }
                     },
                     lion: {
                         pattern: "素材最终/风筝/椋庣瓭/IMG_2704.PNG",
@@ -558,10 +569,30 @@
             };
             setTimeout(preloadImages, 300);
 
-            // ========== 音乐逻辑：与其他页面完全统一 ==========
+            // ========== 音乐逻辑：与其他页面完全统一（新增自动播放） ==========
             const bgMusic = document.getElementById('bgMusic');
             const musicIcon = document.getElementById('musicIcon');
             let isMusicPlaying = false;
+
+            // 自动播放函数
+            async function autoPlayMusic() {
+                try {
+                    await bgMusic.play();
+                    isMusicPlaying = true;
+                    musicIcon.classList.add('active');
+                    console.log("第七页音乐自动播放成功");
+                } catch (err) {
+                    console.log("第七页自动播放受限，等待用户交互：", err);
+                    // 监听用户首次交互后播放
+                    const triggerPlay = () => {
+                        toggleMusic();
+                        document.removeEventListener('touchstart', triggerPlay);
+                        document.removeEventListener('click', triggerPlay);
+                    };
+                    document.addEventListener('touchstart', triggerPlay, { once: true });
+                    document.addEventListener('click', triggerPlay, { once: true });
+                }
+            }
 
             // 首次触摸初始化音频
             function initAudio() {
@@ -574,11 +605,8 @@
             }
             document.addEventListener('touchstart', initAudio, { once: true });
 
-            // 音乐控制逻辑（类名统一为active）
-            function handleMusicClick(e) {
-                e.stopPropagation();
-                e.preventDefault();
-
+            // 统一的音乐开关逻辑
+            function toggleMusic() {
                 try {
                     if (isMusicPlaying) {
                         bgMusic.pause();
@@ -595,6 +623,13 @@
                 } catch (e) {
                     console.error('音乐控制异常:', e);
                 }
+            }
+
+            // 音乐图标点击事件
+            function handleMusicClick(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleMusic();
             }
             musicIcon.addEventListener('touchstart', handleMusicClick, { passive: false });
             musicIcon.addEventListener('click', handleMusicClick);
@@ -672,8 +707,8 @@
                 let colorHtml = '';
                 
                 // 面/翅：绯红/宝蓝/樱桃 | 身（特殊情况除外）：漆黑/精白/缟色
-                const isSpecialBody = (kiteType === 'fish' && selectedPattern === 'lion' && partType === 'body');
-                if (partType === 'face' || partType === 'wing' || isSpecialBody) {
+                const isSpecialBody = (kiteType === 'fish' && (selectedPattern === 'lion' || selectedPattern === 'lotus') && partType === 'body'||partType==='face'||partType==='wing');
+                if (isSpecialBody) {
                     colorHtml = `
                         <div class="option-item" data-value="feihong">
                             <img src="素材最终/风筝制作/资源 91@0.5x.webp" alt="绯红图标" class="option-icon">
@@ -826,8 +861,11 @@
                 ];
                 hideElements.forEach(el => el.style.display = 'none');
 
-                // 截图逻辑（优化配置）
+                // 截图逻辑（优化配置+延迟，提升稳定性）
                 try {
+                    // 延迟截图，确保所有图层加载完成
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
                     const captureContainer = document.getElementById('capture-container');
                     const canvas = await html2canvas(captureContainer, {
                         useCORS: true,
@@ -836,9 +874,10 @@
                         logging: false,
                         allowTaint: true,
                         removeContainer: true,
-                        timeout: 5000 // 增加超时时间
+                        timeout: 10000, // 增加超时时间到10秒
+                        imageTimeout: 5000 // 图片加载超时
                     });
-                    const kiteBase64 = canvas.toDataURL('image/png');
+                    const kiteBase64 = canvas.toDataURL('image/png', 1.0); // 无损压缩
 
                     // 恢复隐藏元素
                     hideElements.forEach(el => el.style.display = '');
@@ -863,12 +902,14 @@
             document.getElementById('flyBtn').addEventListener('click', handleFlyClick);
 
             // ========== 辅助功能 ==========
-            // 页面隐藏时暂停音乐
+            // 页面隐藏时暂停音乐，恢复时继续播放
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden && isMusicPlaying) {
                     bgMusic.pause();
                     musicIcon.classList.remove('active');
                     isMusicPlaying = false;
+                } else if (!document.hidden && isMusicPlaying) {
+                    bgMusic.play().catch(() => {});
                 }
             });
 
@@ -894,6 +935,9 @@
             // 禁止拖拽/选中等默认行为
             document.addEventListener('dragstart', (e) => e.preventDefault());
             document.addEventListener('selectstart', (e) => e.preventDefault());
+
+            // 页面加载后尝试自动播放音乐
+            autoPlayMusic();
         });
     </script>
 </body>

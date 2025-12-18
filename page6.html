@@ -175,16 +175,19 @@
             flex-shrink: 0;
         }
 
+        /* 核心修复：提示文字上移+提升层级，避免被遮挡 */
         .option-box::before {
             content: "依次点击裱糊面料";
             position: absolute;
-            top: -2.5vh;
+            top: -4vh; /* 从-2.5vh上移，远离选项框 */
             left: 50%;
             transform: translateX(-50%);
             font-size: clamp(12px, 3.5vw, 16px); /* 响应式字体 */
             color: #000;
             -webkit-font-smoothing: antialiased;
             font-weight: 400;
+            z-index: 30; /* 提升层级，防止被其他元素遮挡 */
+            white-space: nowrap; /* 强制不换行 */
         }
 
         .option-item {
@@ -283,6 +286,11 @@
                 height: 30vw; /* 进一步加高 */
                 margin-bottom: 3vh;
             }
+            /* 小屏专属：提示文字再上移，避免挤压 */
+            .option-box::before {
+                top: -5vh;
+                font-size: clamp(11px, 3vw, 14px);
+            }
             .skeleton-container{
                 height: 38vh;
             }
@@ -321,7 +329,7 @@
     </style>
 </head>
 <body>
-    <audio id="bgMusic" loop preload="metadata">
+    <audio id="bgMusic" loop preload="auto"> <!-- 预加载改为auto，提升自动播放 -->
         <source src="素材最终/music.m4a" type="audio/mp4">
         <source src="素材最终/music.mp3" type="audio/mpeg"> <!-- 兼容备用 -->
     </audio>
@@ -440,14 +448,64 @@
                 finalSkeleton.src = skeletonSrcMap[kiteType] || skeletonSrcMap.swallow;
             }
 
-            // ========== 音乐播放初始化（与其他页面完全统一） ==========
+            // ========== 音乐逻辑：与其他页面完全统一（新增自动播放） ==========
+            // 自动播放函数
+            async function autoPlayMusic() {
+                try {
+                    await bgMusic.play();
+                    isMusicPlaying = true;
+                    musicIcon.classList.add('active');
+                    console.log("第六页音乐自动播放成功");
+                } catch (err) {
+                    console.log("第六页自动播放受限，等待用户交互：", err);
+                    // 监听用户首次交互后播放
+                    const triggerPlay = () => {
+                        toggleMusic();
+                        document.removeEventListener('touchstart', triggerPlay);
+                        document.removeEventListener('click', triggerPlay);
+                    };
+                    document.addEventListener('touchstart', triggerPlay, { once: true });
+                    document.addEventListener('click', triggerPlay, { once: true });
+                }
+            }
+
+            // 首次触摸初始化音频
+            document.addEventListener('touchstart', initAudio, { once: true });
+            
             function initAudio() {
                 bgMusic.load();
                 bgMusic.muted = true;
                 bgMusic.play().then(() => {
                     bgMusic.pause();
                     bgMusic.muted = false;
-                }).catch(err => console.log("音频预加载：", err));
+                }).catch(err => console.log("第六页音频预加载：", err));
+            }
+
+            // 统一的音乐开关逻辑
+            function toggleMusic() {
+                try {
+                    if (isMusicPlaying) {
+                        bgMusic.pause();
+                        musicIcon.classList.remove('active');
+                    } else {
+                        bgMusic.play().catch(err => {
+                            console.log('第六页音乐播放失败:', err);
+                            bgMusic.load();
+                            setTimeout(() => bgMusic.play(), 100);
+                        });
+                        musicIcon.classList.add('active');
+                    }
+                    isMusicPlaying = !isMusicPlaying;
+                } catch (e) {
+                    console.log('第六页音乐控制异常:', e);
+                }
+            }
+
+            // 音乐图标点击事件
+            function handleMusicClick(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleMusic();
             }
 
             // ========== 选项点击核心逻辑：优化流畅度 ==========
@@ -548,44 +606,19 @@
             nextBtn.addEventListener('touchstart', handleNextClick, { passive: false });
             nextBtn.addEventListener('click', handleNextClick);
 
-            // ========== 音乐控制：与其他页面完全统一的逻辑 ==========
-            function handleMusicClick(e) {
-                e.stopPropagation();
-                e.preventDefault();
-
-                try {
-                    if (isMusicPlaying) {
-                        bgMusic.pause();
-                        musicIcon.classList.remove('active'); // 类名统一为active
-                    } else {
-                        // 移动端兼容：用户交互触发播放
-                        bgMusic.play().catch(err => {
-                            console.error('音乐播放失败:', err);
-                            bgMusic.load();
-                            setTimeout(() => bgMusic.play(), 100);
-                        });
-                        musicIcon.classList.add('active'); // 类名统一为active
-                    }
-                    isMusicPlaying = !isMusicPlaying;
-                } catch (e) {
-                    console.error('音乐控制异常:', e);
-                }
-            }
-
             // 绑定音乐控制事件
             musicIcon.addEventListener('touchstart', handleMusicClick, { passive: false });
             musicIcon.addEventListener('click', handleMusicClick);
 
-            // 首次触摸初始化音频（解决移动端播放限制）
-            document.addEventListener('touchstart', initAudio, { once: true });
-
             // ========== 辅助功能 ==========
-            // 页面隐藏时暂停音乐
+            // 页面隐藏时暂停音乐，恢复时继续播放
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden && isMusicPlaying) {
                     bgMusic.pause();
-                    musicIcon.classList.remove('active'); // 类名统一
+                    musicIcon.classList.remove('active');
                     isMusicPlaying = false;
+                } else if (!document.hidden && isMusicPlaying) {
+                    bgMusic.play().catch(() => {});
                 }
             });
 
@@ -613,6 +646,9 @@
             // 禁止拖拽/选中等默认行为
             document.addEventListener('dragstart', (e) => e.preventDefault());
             document.addEventListener('selectstart', (e) => e.preventDefault());
+
+            // 页面加载后尝试自动播放音乐
+            autoPlayMusic();
         });
     </script>
 </body>

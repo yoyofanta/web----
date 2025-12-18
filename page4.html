@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN"> <!-- 修正语言为中文 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
@@ -197,7 +197,6 @@
             to { transform: rotate(360deg); }
         }
 
-
         @media screen and (min-width:768px){
             .title-box{
                 height:65px;
@@ -275,33 +274,33 @@
     </style>
 </head>
 <body>
-        <audio id="bgMusic" loop preload="metadata">
+    <audio id="bgMusic" loop preload="auto"> <!-- 预加载改为auto，提升加载速度 -->
         <source src="素材最终/music.m4a" type="audio/mp4">
-        </audio>
-        <div class="music-icon" id="musicIcon"></div>
-        <div class ="title-box">
-            <span class ="title-text">选择骨架形状</span>
+    </audio>
+    <div class="music-icon" id="musicIcon"></div>
+    <div class ="title-box">
+        <span class ="title-text">选择骨架形状</span>
+    </div>
+    <div class="skeleton-container">
+        <img src="骨架/骨架/IMG_2714.PNG" alt="燕子骨架" class="skeleton-img" id="skeletonImg">
+    </div>
+    <div class="options">
+        <div class="option-item"  data-type="swallow" data-skeleton="骨架/骨架/IMG_2714.PNG" data-icon="素材最终/风筝制作/资源\ 73@0.5x.webp">
+            <img src="素材最终/风筝制作/资源 73@0.5x.webp" alt="燕" class="option-icon">
+            <span class="option-text">燕</span>
         </div>
-        <div class="skeleton-container">
-            <img src="骨架/骨架/IMG_2714.PNG" alt="燕子骨架" class="skeleton-img" id="skeletonImg">
+        <div class="option-item" data-type="butterfly" data-skeleton="骨架/骨架/IMG_2722.PNG" data-icon="素材最终/风筝制作/资源 74@0.5x.webp">
+            <img src="素材最终/风筝制作/资源 74@0.5x.webp" alt="蝶" class="option-icon">
+            <span class="option-text">蝶</span>
         </div>
-        <div class="options">
-            <div class="option-item"  data-type="swallow" data-skeleton="骨架/骨架/IMG_2714.PNG" data-icon="素材最终/风筝制作/资源\ 73@0.5x.webp">
-                <img src="素材最终/风筝制作/资源 73@0.5x.webp" alt="燕" class="option-icon">
-                <span class="option-text">燕</span>
-            </div>
-            <div class="option-item" data-type="butterfly" data-skeleton="骨架/骨架/IMG_2722.PNG" data-icon="素材最终/风筝制作/资源 74@0.5x.webp">
-                <img src="素材最终/风筝制作/资源 74@0.5x.webp" alt="蝶" class="option-icon">
-                <span class="option-text">蝶</span>
-            </div>
-            <div class="option-item" data-type="fish" data-skeleton="骨架/骨架/IMG_2718.PNG" data-icon="素材最终/风筝制作/资源 75@0.5x.webp">
-                <img src="素材最终/风筝制作/资源 75@0.5x.webp" alt="鱼" class="option-icon">
-                <span class="option-text">鱼</span>
-            </div>
+        <div class="option-item" data-type="fish" data-skeleton="骨架/骨架/IMG_2718.PNG" data-icon="素材最终/风筝制作/资源 75@0.5x.webp">
+            <img src="素材最终/风筝制作/资源 75@0.5x.webp" alt="鱼" class="option-icon">
+            <span class="option-text">鱼</span>
         </div>
-        <div class="btn-group">
-            <button class="next-btn" id="nextBtn">下一步</button>
-        </div>
+    </div>
+    <div class="btn-group">
+        <button class="next-btn" id="nextBtn">下一步</button>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -394,7 +393,27 @@
             nextBtn.addEventListener('touchstart', handleNextClick, { passive: true });
             nextBtn.addEventListener('click', handleNextClick);
 
-            // ========== 音乐播放优化（适配移动端） ==========
+            // ========== 音乐播放优化（与首页/第二页统一逻辑） ==========
+            // 自动播放函数
+            async function autoPlayMusic() {
+                try {
+                    await bgMusic.play();
+                    isMusicPlaying = true;
+                    musicIcon.classList.add('active');
+                    console.log("第四页音乐自动播放成功");
+                } catch (err) {
+                    console.log("第四页自动播放受限，等待用户交互：", err);
+                    // 监听用户首次交互后播放
+                    const triggerPlay = () => {
+                        toggleMusic();
+                        document.removeEventListener('touchstart', triggerPlay);
+                        document.removeEventListener('click', triggerPlay);
+                    };
+                    document.addEventListener('touchstart', triggerPlay, { once: true });
+                    document.addEventListener('click', triggerPlay, { once: true });
+                }
+            }
+
             // 首次触摸初始化音频（解决移动端播放限制）
             document.addEventListener('touchstart', initAudio, { once: true });
             
@@ -404,22 +423,18 @@
                 bgMusic.play().then(() => {
                     bgMusic.pause();
                     bgMusic.muted = false;
-                }).catch(err => console.log("音频预加载：", err));
+                }).catch(err => console.log("第四页音频预加载：", err));
             }
 
-            // 音乐开关逻辑
-            function handleMusicClick(e) {
-                e.stopPropagation();
-                e.preventDefault();
-
+            // 统一的音乐开关逻辑
+            function toggleMusic() {
                 try {
                     if (isMusicPlaying) {
                         bgMusic.pause();
                         musicIcon.classList.remove('active');
                     } else {
-                        // 移动端用户交互触发播放，添加异常捕获
                         bgMusic.play().catch(err => {
-                            console.log('音乐播放失败:', err);
+                            console.log('第四页音乐播放失败:', err);
                             // 降级处理：重新加载并播放
                             bgMusic.load();
                             setTimeout(() => bgMusic.play(), 100);
@@ -428,8 +443,15 @@
                     }
                     isMusicPlaying = !isMusicPlaying;
                 } catch (e) {
-                    console.log('音乐控制异常:', e);
+                    console.log('第四页音乐控制异常:', e);
                 }
+            }
+
+            // 音乐图标点击事件
+            function handleMusicClick(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleMusic();
             }
 
             musicIcon.addEventListener('touchstart', handleMusicClick, { passive: false });
@@ -442,6 +464,9 @@
                     bgMusic.pause();
                     isMusicPlaying = false;
                     musicIcon.classList.remove('active');
+                } else if (!document.hidden && isMusicPlaying) {
+                    // 页面恢复时继续播放
+                    bgMusic.play().catch(() => {});
                 }
             });
 
@@ -464,8 +489,10 @@
                     console.error('选项图标加载失败:', this.src);
                 }
             });
+
+            // 页面加载后尝试自动播放音乐
+            autoPlayMusic();
         });
     </script>
-    
 </body>
 </html>

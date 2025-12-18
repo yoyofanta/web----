@@ -177,13 +177,15 @@
         .option-box::before{
             content:"依次点击扎制骨架";
             position:absolute;
-            top: -2.5vh;
+            top: -4vh;
             left:50%;
             transform: translateX(-50%);
             font-size: clamp(14px, 4vw, 18px);
             color:#000;
             -webkit-font-smoothing: antialiased;
             font-weight: 400;
+            z-index: 300; /* 增加层级，防止被其他元素遮挡 */
+            white-space: nowrap;
         }
 
         /* 选项项：等宽分布+居中，防溢出 */
@@ -289,6 +291,11 @@
                 margin-bottom: 2vh;
                 padding: 2vw 2vw; /* 小屏减小左右内边距，但保留防溢出 */
             }
+
+            .option-box::before{
+                top: -5vh; /* 小屏进一步上移 */
+                font-size: clamp(12px, 3.5vw, 16px); /* 适度缩小字体 */
+            }
             .option-item{
                 width: 17vw; /* 小屏适度减小宽度 */
             }
@@ -332,7 +339,7 @@
     </style>
 </head>
 <body>
-    <audio id="bgMusic" loop preload="metadata">
+    <audio id="bgMusic" loop preload="auto"> <!-- 预加载改为auto，提升自动播放成功率 -->
         <source src="素材最终/music.m4a" type="audio/mp4">
         <source src="素材最终/music.mp3" type="audio/mpeg"> <!-- 兼容备用 -->
     </audio>
@@ -503,7 +510,27 @@
                 }, 200);
             }
 
-            // ========== 音乐逻辑：与其他页面完全一致 ==========
+            // ========== 音乐逻辑：与其他页面完全统一（新增自动播放） ==========
+            // 自动播放函数
+            async function autoPlayMusic() {
+                try {
+                    await bgMusic.play();
+                    isMusicPlaying = true;
+                    musicIcon.classList.add('active');
+                    console.log("第五页音乐自动播放成功");
+                } catch (err) {
+                    console.log("第五页自动播放受限，等待用户交互：", err);
+                    // 监听用户首次交互后播放
+                    const triggerPlay = () => {
+                        toggleMusic();
+                        document.removeEventListener('touchstart', triggerPlay);
+                        document.removeEventListener('click', triggerPlay);
+                    };
+                    document.addEventListener('touchstart', triggerPlay, { once: true });
+                    document.addEventListener('click', triggerPlay, { once: true });
+                }
+            }
+
             // 首次触摸初始化音频
             document.addEventListener('touchstart', initAudio, { once: true });
             
@@ -513,21 +540,18 @@
                 bgMusic.play().then(() => {
                     bgMusic.pause();
                     bgMusic.muted = false;
-                }).catch(err => console.log("音频预加载：", err));
+                }).catch(err => console.log("第五页音频预加载：", err));
             }
 
-            // 音乐开关
-            function handleMusicClick(e) {
-                e.stopPropagation();
-                e.preventDefault();
-
+            // 统一的音乐开关逻辑
+            function toggleMusic() {
                 try {
                     if (isMusicPlaying) {
                         bgMusic.pause();
                         musicIcon.classList.remove('active');
                     } else {
                         bgMusic.play().catch(err => {
-                            console.log('音乐播放失败:', err);
+                            console.log('第五页音乐播放失败:', err);
                             bgMusic.load();
                             setTimeout(() => bgMusic.play(), 100);
                         });
@@ -535,8 +559,15 @@
                     }
                     isMusicPlaying = !isMusicPlaying;
                 } catch (e) {
-                    console.log('音乐控制异常:', e);
+                    console.log('第五页音乐控制异常:', e);
                 }
+            }
+
+            // 音乐图标点击事件
+            function handleMusicClick(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleMusic();
             }
 
             // ========== 初始化 ==========
@@ -578,6 +609,9 @@
                     bgMusic.pause();
                     musicIcon.classList.remove('active');
                     isMusicPlaying = false;
+                } else if (!document.hidden && isMusicPlaying) {
+                    // 页面恢复时继续播放
+                    bgMusic.play().catch(() => {});
                 }
             });
 
@@ -602,6 +636,9 @@
 
             document.addEventListener('dragstart', (e) => e.preventDefault());
             document.addEventListener('selectstart', (e) => e.preventDefault());
+
+            // 页面加载后尝试自动播放音乐
+            autoPlayMusic();
         });
     </script>
 </body>
