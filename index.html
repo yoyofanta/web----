@@ -11,11 +11,16 @@
             margin:0;
             padding:0;
             box-sizing:border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        body{
-            overflow:hidden;
-            -webkit-overflow-scrolling:touch;
+        html,body{
+            overflow:hidden !important;
+            height: 100% !important;     /* 固定高度，避免滚动条 */
+            touch-action: none !important; /* 禁用所有触摸行为（滑动、缩放等） */
+            -webkit-overflow-scrolling: auto !important; 
         }
 
         .page-home{
@@ -25,7 +30,7 @@
             background-size:cover;
             background-position:center;
             position:relative;
-            overflow: hidden;
+            overflow: hidden !important;
             background-repeat: no-repeat;
         }
 
@@ -38,6 +43,7 @@
             background-image:url("素材最终/封面/资源\ 8@0.5x.webp");
             background-size:contain;
             background-repeat:no-repeat;
+            background-position: center right;
             z-index:1;
         }
 
@@ -52,6 +58,8 @@
             background-image: url("素材最终/封面/资源\ 14@0.5x.webp");
             background-size: contain;
             background-repeat: no-repeat;
+            background-position: left center;
+
             z-index: 1.5;
         }
 
@@ -78,12 +86,13 @@
             background-image: url("素材最终/封面/资源\ 4@0.5x.webp");
             background-size: contain;
             background-repeat: no-repeat;
+            background-position: left center;
             z-index: 1.5;
         }
 
         .line-4{
             position: absolute;
-            top:30%;
+            top:45%;
             right:0%;
             width:40%;
             height:100px;
@@ -97,11 +106,10 @@
         }
 
         .kite-img{
-            width:75%;
+            width:70%;
             position:absolute;
             top:15%;
             left:0%;
-            transform: translate(-50%,-50%);
             height:auto;
             z-index:2;
             animation:float 6s ease-in-out infinite;
@@ -122,7 +130,7 @@
 
         .main-title{
             position:absolute;
-            right:2%;
+            right:0%;
             bottom:10%;
             z-index: 3;
         }
@@ -144,7 +152,7 @@
             background-image:url("素材最终/封面/资源\ 5@0.5x.webp");
             background-size:contain;
             background-repeat:no-repeat;
-            transform:rorate(10deg);
+            transform:rotate(10deg);
             z-index:4;
         }
 
@@ -182,15 +190,81 @@
             transition: transform 0.2s ease;
         }
 
+        .music-icon.active{
+            transform: rotate(360deg);
+            animation: rotateMusic 3s linear infinite;
+        }
+
         @keyframes float{
-            0%{transform:translateY(0px)rotate(0deg);}
-            50%{transform:translateY(-10px)rotate(2deg);}
-            100%{transform:translateY(0px)rotate(0deg);}
+            0%{transform: translateY(0px) rotate(0deg);}
+            25%{transform: translateY(-8px) rotate(1deg);}
+            50%{transform: translateY(-10px) rotate(2deg);}
+            75%{transform: translateY(-8px) rotate(1deg);}
+            100%{transform: translateY(0px) rotate(0deg);}
         }
 
         @keyframes bounce{
-            0%,100%{transform:translateY(0);}
-            50%{transform:translateY(-8px);}
+            0%,100%{transform: translateY(0);}
+            50%{transform: translateY(-8px);}
+        }
+
+        @keyframes rotateMusic{
+            from{transform: rotate(0deg);}
+            to{transform: rotate(360deg);}
+        }
+
+        @media screen and (max-width: 375px) {
+            .kite-img{
+                width:50%;
+                top:20%;
+                left:15%;
+            }
+            .main-title{
+                right:5%;
+                bottom:8%;
+            }
+            .line-1{
+                top:45%;
+                width:70%;
+            }
+            .line-4{
+                top:40%;
+            }
+            .slide-tip-img{
+                width:15%;
+            }
+            .music-icon{
+                width:28px;
+                height:28px;
+                top:20px;
+                right:20px;
+            }
+        }
+
+        /* 响应式适配 - 大屏平板 */
+        @media screen and (min-width: 768px) {
+            .kite-img{
+                width:50%;
+                top:10%;
+                left:25%;
+            }
+            .text-area{
+                right:20%;
+                top:10%;
+            }
+            .main-title{
+                right:15%;
+                bottom:15%;
+            }
+            .slide-tip-img{
+                width:15%;
+            }
+            .music-icon{
+                width:40px;
+                height:40px;
+                top:30px;
+                right:30px;
+            }
         }
     </style>
 </head>
@@ -217,12 +291,36 @@
     </div>
 
     <script>
+        // ========== 核心1：拦截所有触摸滑动事件，禁止默认行为 ==========
+        // 拦截touchmove（滑动的核心事件）
+        document.addEventListener('touchmove', function(e) {
+            e.preventDefault(); // 禁止所有触摸滑动的默认行为
+            e.stopPropagation(); // 阻止事件冒泡
+        }, { passive: false }); // 必须设置passive: false，才能生效preventDefault
+
+        // 拦截touchstart/touchend的额外行为（防止惯性滚动）
+        document.addEventListener('touchstart', function(e) {
+            e.stopPropagation();
+        }, { passive: true });
+
+        document.addEventListener('touchend', function(e) {
+            e.stopPropagation();
+        }, { passive: true });
+
         let startY=0;
-        document.addEventListener('touchstart',(e)=>{startY=e.touches[0].clientY;});
+        // 增加passive: true提升滑动性能
+        document.addEventListener('touchstart',(e)=>{
+            startY=e.touches[0].clientY;
+        }, { passive: true });
+
         document.addEventListener('touchend',(e)=>{
             const endY=e.changedTouches[0].clientY;
-            if(startY-endY>50){
-                window.location.href="page2-3.html";
+            // 增加阈值，避免误触
+            if(startY-endY>80){
+                // 延迟跳转，增加滑动反馈
+                setTimeout(()=>{
+                    window.location.href="page2-3.html";
+                }, 100);
             }
         });
 
@@ -232,33 +330,57 @@
         // 创建音频实例并设置循环
         const bgMusic = new Audio("素材最终/music.m4a");
         bgMusic.loop = true; // 设置循环播放
-        bgMusic.preload = "auto"; // 预加载音频
+        bgMusic.preload = "metadata"; // 预加载音频
 
-        // 核心：通过用户点击触发播放（解决移动端限制）
+
+        // 首次触摸页面时初始化音频（解决部分浏览器限制）
+        document.addEventListener('touchstart', initAudio, { once: true });
+        
+        function initAudio() {
+            bgMusic.load(); // 初始化音频
+            // 静音预加载（部分浏览器需要）
+            bgMusic.muted = true;
+            bgMusic.play().then(() => {
+                bgMusic.pause();
+                bgMusic.muted = false;
+            }).catch(err => console.log("音频预加载：", err));
+        }
+
+        // 音乐图标点击事件
         musicIcon.addEventListener('click', async () => {
             try {
                 if (isPlaying) {
                     bgMusic.pause();
-                    musicIcon.classList.remove('active'); // 移除播放状态样式
+                    musicIcon.classList.remove('active');
                 } else {
-                    // 移动端必须通过用户交互触发play()，添加异常捕获
+                    // 强制重新加载后播放（解决缓存问题）
                     await bgMusic.play();
-                    musicIcon.classList.add('active'); // 添加播放状态样式
+                    musicIcon.classList.add('active');
                 }
                 isPlaying = !isPlaying;
             } catch (err) {
-                console.log("音乐播放失败：", err);
-                // 兼容处理：提示用户再次点击
-                alert("音频播放失败，请再次点击音乐图标或检查音频文件路径");
+                console.error("音乐播放失败：", err);
+                // 降级方案：提示用户检查路径/权限
+                alert("音频播放失败，请检查音频文件路径或浏览器权限");
+                // 手动触发重新加载
+                bgMusic.load();
+                setTimeout(() => bgMusic.play(), 500);
             }
         });
 
-        // 兼容：页面触摸时尝试初始化音频（部分浏览器需要）
-        document.addEventListener('touchstart', () => {
-            if (!isPlaying) {
-                bgMusic.load(); // 重新加载音频，确保可播放
+        // 页面隐藏时暂停音乐，节省资源
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isPlaying) {
+                bgMusic.pause();
+                isPlaying = false;
+                musicIcon.classList.remove('active');
             }
-        }, { once: true }); // 只执行一次
+        });
+
+        document.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }, { passive: false });
     </script>
     
 </body>

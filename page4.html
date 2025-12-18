@@ -19,6 +19,13 @@
             transform: translate3d(0, 0, 0);
         }
 
+        html, body {
+            overflow: hidden !important;
+            height: 100% !important;
+            touch-action: none !important;
+            -webkit-overflow-scrolling: auto !important;
+        }
+
         body{
             overflow: hidden;
             width:100vw;
@@ -162,6 +169,10 @@
             pointer-events: all;
         }
 
+        .next-btn.enable:active{
+            transform: scale(0.95);
+        }
+
         .music-icon{
             position:absolute;
             top:30px;
@@ -179,6 +190,16 @@
             padding: 8px;
             margin: -8px;
         }
+
+        .music-icon.active{
+            animation: rotateMusic 3s linear infinite;
+        }
+
+        @keyframes rotateMusic{
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
 
         @media screen and (min-width:768px){
             body{
@@ -295,30 +316,41 @@
             const optionItems = document.querySelectorAll('.option-item');
             const skeletonImg = document.getElementById('skeletonImg');
             const nextBtn = document.getElementById('nextBtn');
+            const musicIcon = document.getElementById('musicIcon');
+            const bgMusic = document.getElementById('bgMusic');
+            
             let selectedType='';
+            let isMusicPlaying = false;
+
+            // ========== 核心1：拦截所有滑动事件，彻底禁止页面滚动 ==========
+            document.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+
+            // 兜底：禁用PC端鼠标滚轮
+            document.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
 
             // 预加载所有骨架图片（避免首次点击加载卡顿）
             const preloadImages = () => {
                 optionItems.forEach(item => {
                     const src = item.getAttribute('data-skeleton');
-                    const img = new Image();
-                    img.src = src;
+                    const iconSrc = item.getAttribute('data-icon');
+                    // 预加载骨架+图标
+                    [src, iconSrc].forEach(url => {
+                        const img = new Image();
+                        img.src = url;
+                    });
                 });
             };
             // 延迟预加载，不阻塞首屏
             setTimeout(preloadImages, 300);
 
-            // 优化骨架切换逻辑（更流畅的过渡）
-            optionItems.forEach(item => {
-                // 使用touchstart代替click，消除300ms延迟
-                item.addEventListener('touchstart', handleOptionClick, { passive: true });
-                // 兼容PC端
-                item.addEventListener('click', handleOptionClick);
-            });
-
-            // 抽离点击逻辑，避免重复代码
+            // ========== 骨架选择逻辑优化 ==========
             function handleOptionClick(e) {
-                // 阻止事件冒泡和默认行为
                 e.stopPropagation();
                 if (e.type === 'touchstart') e.preventDefault();
 
@@ -350,10 +382,13 @@
                 nextBtn.classList.add('enable');
             }
 
-            // 下一步按钮点击优化
-            nextBtn.addEventListener('touchstart', handleNextClick, { passive: true });
-            nextBtn.addEventListener('click', handleNextClick);
+            // 绑定选项点击事件（touchstart+click）
+            optionItems.forEach(item => {
+                item.addEventListener('touchstart', handleOptionClick, { passive: true });
+                item.addEventListener('click', handleOptionClick);
+            });
 
+            // ========== 下一步按钮逻辑 ==========
             function handleNextClick(e) {
                 e.stopPropagation();
                 if (selectedType) {
@@ -364,22 +399,31 @@
                 }
             }
 
-            // 音乐控制优化（移动端兼容）
-            const musicIcon = document.getElementById('musicIcon');
-            const bgMusic = document.getElementById('bgMusic');
-            let isPlaying = false;
+            nextBtn.addEventListener('touchstart', handleNextClick, { passive: true });
+            nextBtn.addEventListener('click', handleNextClick);
 
-            // 音乐播放/暂停核心逻辑
-            musicIcon.addEventListener('touchstart', handleMusicClick, { passive: false });
-            musicIcon.addEventListener('click', handleMusicClick);
+            // ========== 音乐播放优化（适配移动端） ==========
+            // 首次触摸初始化音频（解决移动端播放限制）
+            document.addEventListener('touchstart', initAudio, { once: true });
+            
+            function initAudio() {
+                bgMusic.load();
+                bgMusic.muted = true;
+                bgMusic.play().then(() => {
+                    bgMusic.pause();
+                    bgMusic.muted = false;
+                }).catch(err => console.log("音频预加载：", err));
+            }
 
+            // 音乐开关逻辑
             function handleMusicClick(e) {
                 e.stopPropagation();
                 e.preventDefault();
 
                 try {
-                    if (isPlaying) {
+                    if (isMusicPlaying) {
                         bgMusic.pause();
+                        musicIcon.classList.remove('active');
                     } else {
                         // 移动端用户交互触发播放，添加异常捕获
                         bgMusic.play().catch(err => {
@@ -388,18 +432,24 @@
                             bgMusic.load();
                             setTimeout(() => bgMusic.play(), 100);
                         });
+                        musicIcon.classList.add('active');
                     }
-                    isPlaying = !isPlaying;
+                    isMusicPlaying = !isMusicPlaying;
                 } catch (e) {
                     console.log('音乐控制异常:', e);
                 }
             }
 
+            musicIcon.addEventListener('touchstart', handleMusicClick, { passive: false });
+            musicIcon.addEventListener('click', handleMusicClick);
+
+            // ========== 页面状态监听 ==========
             // 页面隐藏/离开时暂停音乐
             document.addEventListener('visibilitychange', () => {
-                if (document.hidden && isPlaying) {
+                if (document.hidden && isMusicPlaying) {
                     bgMusic.pause();
-                    isPlaying = false;
+                    isMusicPlaying = false;
+                    musicIcon.classList.remove('active');
                 }
             });
 
@@ -407,6 +457,7 @@
                 bgMusic.pause();
             });
 
+            // ========== 容错处理 ==========
             // 图片加载失败容错
             skeletonImg.onerror = function() {
                 this.style.opacity = 1;
@@ -414,12 +465,13 @@
                 console.error('骨架图片加载失败:', this.src);
             }
 
-            // 禁用全局触摸默认行为（优化滑动/点击）
-            document.addEventListener('touchmove', (e) => {
-                if (!['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-                    e.preventDefault();
+            // 选项图标加载失败容错
+            document.querySelectorAll('.option-icon').forEach(icon => {
+                icon.onerror = function() {
+                    this.style.opacity = 0.8;
+                    console.error('选项图标加载失败:', this.src);
                 }
-            }, { passive: false });
+            });
         });
     </script>
     

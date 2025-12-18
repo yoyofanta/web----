@@ -19,6 +19,13 @@
             transform: translate3d(0, 0, 0);
         }
 
+        html, body {
+            overflow: hidden !important;
+            height: 100% !important;
+            touch-action: none !important;
+            -webkit-overflow-scrolling: auto !important;
+        }
+
         body{
             overflow: hidden;
             width:100vw;
@@ -36,6 +43,7 @@
             backface-visibility: hidden;
             -webkit-font-smoothing: antialiased;
             -webkit-touch-callout: none;
+            transition: opacity 0.2s ease;
         }
         .music-icon{
             position:absolute;
@@ -53,6 +61,15 @@
             -webkit-tap-highlight-color: transparent;
             padding: 8px;
             margin: -8px;
+        }
+
+        .music-icon.playing{
+            animation: rotateMusic 3s linear infinite;
+        }
+
+        @keyframes rotateMusic{
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .step-tabs{
@@ -136,7 +153,7 @@
             opacity: 1;
             /* 防止闪烁 */
             backface-visibility: hidden;
-            will-change: opacity, display;
+            will-change: opacity, transform;
         }
 
         .skeleton-img.fade-out{
@@ -196,6 +213,11 @@
             pointer-events: none;
         }
 
+        .option-item.available:active{
+            transform: scale(0.95);
+            opacity: 1;
+        }
+
         .option-icon{
             width:12vw;
             height:12vw;
@@ -240,6 +262,10 @@
             pointer-events: all;
         }
 
+        .page-btn.enable:active{
+            transform: scale(0.95);
+        }
+
 
         @media screen and (max-width:375px){
             .option-box{
@@ -253,6 +279,11 @@
                 height:28px;
                 top:20px;
                 right:20px;
+            }
+
+            .skeleton-container{
+                height:40vh; /* 降低高度，适配小屏 */
+                margin-bottom: 4vh;
             }
         }
 
@@ -269,6 +300,10 @@
             }
             .btn-group{
                 gap:120px;
+            }
+
+            .skeleton-container{
+                height:50vh;
             }
         }
     </style>
@@ -349,6 +384,18 @@
             // ========== 状态变量 ==========
             let isMusicPlaying = false;
 
+            // ========== 核心：彻底禁止页面滑动 ==========
+            document.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+
+            // 兜底：禁用PC端鼠标滚轮
+            document.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+
             // ========== 提前定义所有核心函数（解决未定义报错） ==========
             /**
              * 选项点击处理函数（竹/刀/锯/灯/绳）
@@ -403,18 +450,23 @@
                     const targetImg = document.getElementById(targetImgId);
                     if (targetImg) {
                         targetImg.style.display = 'block';
+                        targetImg.style.opacity = 1;
                         targetImg.style.transform = 'translate(-50%, -50%) scale(1)';
                     } else {
                         console.warn(`未找到对应图片: ${targetImgId}`);
                     }
-
                     // 最后一步（绳）显示最终骨架
                     if (currentStep === 5) {
                         setTimeout(() => {
                             skeletonImgs.forEach(img => img.style.display = 'none');
                             const finalImgId = `final${kiteType.charAt(0).toUpperCase() + kiteType.slice(1)}`;
                             const finalImg = document.getElementById(finalImgId);
-                            if (finalImg) finalImg.style.display = 'block';
+                            if (finalImg) {
+                                finalImg.style.display = 'block';
+                                finalImg.style.opacity = 1;
+                            } else {
+                                console.warn(`未找到最终骨架图片: ${finalImgId}`);
+                            }
                         }, 300);
                     }
                 }, 200);
@@ -468,6 +520,15 @@
                 }, 200);
             }
 
+            function initAudio() {
+                bgMusic.load();
+                bgMusic.muted = true;
+                bgMusic.play().then(() => {
+                    bgMusic.pause();
+                    bgMusic.muted = false;
+                }).catch(err => console.log("音频预加载：", err));
+            }
+
             /**
              * 音乐播放/暂停切换
              */
@@ -499,10 +560,17 @@
              * 预加载所有图片，避免点击时卡顿
              */
             const preloadImages = () => {
+                // 预加载骨架图
                 skeletonImgs.forEach(img => {
                     const preloadImg = new Image();
                     preloadImg.src = img.src;
                     preloadImg.onerror = () => console.warn(`图片预加载失败: ${img.src}`);
+                });
+                // 预加载选项图标
+                document.querySelectorAll('.option-icon').forEach(icon => {
+                    const preloadImg = new Image();
+                    preloadImg.src = icon.src;
+                    preloadImg.onerror = () => console.warn(`图标预加载失败: ${icon.src}`);
                 });
             };
             setTimeout(preloadImages, 300); // 延迟预加载，不阻塞首屏
@@ -524,7 +592,10 @@
             nextBtn.addEventListener('touchstart', handleNextClick, { passive: false });
             nextBtn.addEventListener('click', handleNextClick);
 
-            // 4. 绑定音乐控制事件
+            // 4. 首次触摸初始化音频（解决移动端播放限制）
+            document.addEventListener('touchstart', initAudio, { once: true });
+
+            // 5. 绑定音乐控制事件
             musicIcon.addEventListener('touchstart', handleMusicClick, { passive: false });
             musicIcon.addEventListener('click', handleMusicClick);
 
@@ -551,17 +622,17 @@
                 };
             });
 
-            // 禁用全局触摸滚动（适配移动端）
-            document.addEventListener('touchmove', (e) => {
-                if (!['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
+            // 选项图标加载错误处理
+            document.querySelectorAll('.option-icon').forEach(icon => {
+                icon.onerror = function() {
+                    this.style.opacity = 0.5;
+                    console.error(`图标加载失败: ${this.src}`);
+                };
+            });
 
             // 禁止拖拽/选中等默认行为
             document.addEventListener('dragstart', (e) => e.preventDefault());
             document.addEventListener('selectstart', (e) => e.preventDefault());
-
         });
     </script>
 </body>

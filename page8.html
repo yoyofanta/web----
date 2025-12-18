@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-touch-callout" content="none">
     <title>风筝放飞拍摄</title>
     <style>
         * {
@@ -11,7 +14,19 @@
             box-sizing: border-box;
             user-select: none;
             font-family: "Noto Sans SC Regular", sans-serif;
+            -webkit-transform: translate3d(0, 0, 0);
+            transform: translate3d(0, 0, 0);
+            will-change: transform, opacity;
         }
+
+        html, body {
+            overflow: hidden !important;
+            height: 100% !important;
+            touch-action: none !important;
+            -webkit-overflow-scrolling: auto !important;
+            -webkit-user-select: none;
+        }
+
         body {
             background-image: url("images/2/background.jpg");
             background-size: cover;
@@ -19,6 +34,8 @@
             background-position: center;
             height: 100vh;
             overflow: hidden;
+            position: fixed; /* 兜底禁止滑动 */
+            width: 100%;
         }
         .container {
             position: relative;
@@ -43,6 +60,7 @@
             overflow: hidden;
             z-index: 1;
             max-height: 75vh;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
         }
         #camera-preview {
             object-fit: none;
@@ -61,11 +79,12 @@
             height: auto;
             cursor: pointer;
             z-index: 2;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             max-width: 50vw;
             max-height: 40vh;
             --base-width:80vw;
             --base-height: auto;
+            will-change: top, left, transform;
         }
         @keyframes kiteFlyCurve {
             0% {
@@ -113,6 +132,10 @@
             color: #FFF;
             z-index: 2;
             text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* 增加文字阴影，提升可读性 */
+            background-color: rgba(0, 0, 0, 0.2); /* 半透明背景，增强对比度 */
+            padding: 1vw 3vw;
+            border-radius: 10vw;
         }
         #shoot-btn {
             position: absolute;
@@ -128,7 +151,13 @@
             background-size: 100% 100%;
             cursor: pointer;
             z-index: 99;
+            transition: transform 0.1s ease; 
         }
+
+        #shoot-btn:active {
+            transform: translateX(-50%) scale(0.95); /* 点击缩小反馈 */
+        }
+
         .shoot-text {
             position: absolute;
             bottom: 21vh;
@@ -137,6 +166,7 @@
             font-size: 3.5vw;
             color: #FFF;
             z-index: 100;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
         .music-btn {
             position: absolute;
@@ -150,6 +180,20 @@
             background-size: 100% 100%;
             cursor: pointer;
             z-index: 99;
+            transition: transform 0.2s ease;
+        }
+        .music-btn.playing {
+            animation: rotateMusic 3s linear infinite; /* 音乐播放旋转动画 */
+        }
+
+        @keyframes rotateMusic {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* ========== 第二页（预览页）- 完全保留 ========== */
@@ -170,6 +214,7 @@
             overflow: hidden;
             z-index: 101;
             max-height: 75vh;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         #preview-img {
             object-fit: none;
@@ -194,8 +239,14 @@
             padding: 0;          
             text-indent: -9999px;
             overflow: hidden;    
-            cursor: pointer;     
+            cursor: pointer;    
+            transition: transform 0.1s ease; 
         }
+
+        .preview-btn:active {
+            transform: scale(0.95); /* 点击缩小 */
+        }
+
         #retake-btn {
             background-image: url("images/2/资源 51@0.5x.png");
             background-size: contain;
@@ -235,6 +286,7 @@
             overflow: hidden;
             z-index: 201;
             max-height: 75vh;  
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         #final-photo {
             object-fit: none;  
@@ -254,6 +306,7 @@
             left: 15vw;        
             z-index: 202;      
             text-align: left;  
+            pointer-events: none;
         }
         .kite-text {
             font-size: 10vw;    /* 放大到10vw */
@@ -265,6 +318,8 @@
             white-space: pre-line; 
             display: inline-block;
             font-family: "Microsoft YaHei", "SimHei", "Noto Sans SC Regular", sans-serif;
+            border-radius: 2vw; /* 圆角优化 */
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         /* 核心修改1：缩小按钮组间距（从10vw改为5vw） */
         .final-btn-group {
@@ -275,6 +330,7 @@
             display: flex;
             gap: 5vw; /* 原10vw → 5vw，按钮间距变小，可根据需求调至4vw/6vw */
             align-items: center; /* 确保图标和文字垂直居中对齐 */
+            z-index: 203;
         }
         /* 核心修改2：重构按钮样式，支持图标+下方文字 */
         .final-btn {
@@ -297,7 +353,14 @@
             text-indent: 0;        /* 取消文字隐藏 */
             overflow: visible;     /* 显示文字 */
             line-height: 1;        /* 文字行高 */
+            transition: transform 0.1s ease; /* 点击反馈 */
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
         }
+
+        .final-btn:active {
+            transform: scale(0.95); /* 点击缩小 */
+        }
+
         /* 新增：按钮文字的样式（单独控制，避免影响图标） */
         .final-btn span {
             margin-top: 11vw; /* 文字和图标之间的间距 */
@@ -313,6 +376,76 @@
         #back-btn {
             background-image: url("images/2/资源 101@0.5x.webp");
         }
+
+        @media screen and (max-width: 375px) {
+            .hint {
+                font-size: 4.5vw;
+                padding: 1.5vw 4vw;
+            }
+
+            .shoot-text {
+                font-size: 4vw;
+            }
+
+            #shoot-btn {
+                width: 18vw;
+                height: 18vw;
+                bottom: 21vh;
+            }
+
+            .final-btn {
+                width: 12vw;
+                height: 12vw;
+                font-size: 3.5vw;
+            }
+
+            .final-btn span {
+                margin-top: 13vw;
+            }
+
+            .kite-text {
+                font-size: 11vw;
+                padding: 2.5vw 3.5vw;
+            }
+        }
+
+        /* ========== 平板适配 ========== */
+        @media screen and (min-width: 768px) {
+            .hint {
+                font-size: 2.5vw;
+                padding: 0.5vw 2vw;
+            }
+
+            .shoot-text {
+                font-size: 2vw;
+            }
+
+            #shoot-btn {
+                width: 10vw;
+                height: 10vw;
+                bottom: 20vh;
+            }
+
+            .final-btn {
+                width: 8vw;
+                height: 8vw;
+                font-size: 2vw;
+            }
+
+            .final-btn span {
+                margin-top: 9vw;
+            }
+
+            .kite-text {
+                font-size: 6vw;
+                padding: 1.5vw 2.5vw;
+            }
+
+            .final-btn-group {
+                gap: 8vw;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -361,12 +494,29 @@
     </div>
 
     <script>
-        // ========== 新增：禁止移动端页面滑动 ==========
+        // ========== 核心：彻底禁止页面滑动 ==========
         document.addEventListener('DOMContentLoaded', () => {
+            // 1. 拦截所有滑动行为
+            document.addEventListener('touchmove', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+
+            // 2. 拦截PC端滚轮
+            document.addEventListener('wheel', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+
+            // 3. 禁止拖拽/选中等默认行为
+            document.addEventListener('dragstart', (e) => e.preventDefault());
+            document.addEventListener('selectstart', (e) => e.preventDefault());
+
+            // ========== 读取DIY风筝逻辑 ==========
             // 1. 优先读取localStorage（page7新版逻辑）
             const kiteBase64 = localStorage.getItem('diyKiteBase64');
             const kiteType = localStorage.getItem('diyKiteType') || 'swallow';
-            
+
             // 2. 兼容旧版URL参数（兜底）
             const urlParams = new URLSearchParams(window.location.search);
             const encodedKite = urlParams.get('kite');
@@ -396,7 +546,68 @@
             } else {
                 console.log(' 未检测到DIY风筝,使用默认风筝');
             }
+
+            // ========== 音乐播放逻辑 ==========
+            // 初始化音频（解决移动端播放限制）
+            let bgMusic = null;
+            let isMusicPlaying = false;
+            const musicBtns = document.querySelectorAll('.music-btn');
+
+            function initAudio() {
+                if (bgMusic) return;
+                bgMusic = new Audio('素材最终/music.m4a');
+                bgMusic.loop = true;
+                bgMusic.muted = true;
+                bgMusic.load();
+                bgMusic.play().then(() => {
+                    bgMusic.pause();
+                    bgMusic.muted = false;
+                }).catch(err => console.log("音频预加载：", err));
+            }
+
+            // 首次触摸初始化音频
+            document.addEventListener('touchstart', initAudio, { once: true });
+
+            // 绑定音乐按钮点击
+            musicBtns.forEach(btn => {
+                btn.addEventListener('click', toggleMusic);
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    toggleMusic();
+                }, { passive: false });
+            });
+
+            function toggleMusic() {
+                if (!bgMusic) initAudio();
+
+                try {
+                    if (isMusicPlaying) {
+                        bgMusic.pause();
+                        musicBtns.forEach(btn => btn.classList.remove('playing'));
+                    } else {
+                        bgMusic.play().catch(err => {
+                            console.error('音乐播放失败:', err);
+                            bgMusic.load();
+                            setTimeout(() => bgMusic.play(), 100);
+                        });
+                        musicBtns.forEach(btn => btn.classList.add('playing'));
+                    }
+                    isMusicPlaying = !isMusicPlaying;
+                } catch (e) {
+                    console.error('音乐控制异常:', e);
+                }
+            }
+
+            // 页面隐藏时暂停音乐
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && isMusicPlaying) {
+                    bgMusic.pause();
+                    musicBtns.forEach(btn => btn.classList.remove('playing'));
+                    isMusicPlaying = false;
+                }
+            });
         });
+    
         // ========== DOM元素获取 ==========
         const shootPage = document.getElementById('shoot-page');
         const previewPage = document.getElementById('preview-page');
@@ -422,6 +633,12 @@
             height: 0
         };
         let captureCanvas = null;
+
+        // ========== 防重复点击锁 ==========
+        let isShootLocked = false;
+        let isConfirmLocked = false;
+        let isSaveLocked = false;
+
 
         // ========== 第一、二页原有逻辑 - 优化相机初始化 ==========
         function syncVideoNativeSize() {
@@ -460,6 +677,17 @@
                 };
 
                 window.addEventListener('resize', syncVideoNativeSize);
+                // 页面隐藏时暂停相机，节省资源
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden && cameraPreview.srcObject) {
+                        const tracks = cameraPreview.srcObject.getTracks();
+                        tracks.forEach(track => track.enabled = false);
+                    } else if (isCameraReady && cameraPreview.srcObject) {
+                        const tracks = cameraPreview.srcObject.getTracks();
+                        tracks.forEach(track => track.enabled = true);
+                    }
+                });
+
             } catch (err) {
                 let errMsg = '';
                 if (err.name === 'NotAllowedError') {
@@ -474,7 +702,7 @@
             }
         }
 
-        // ========== 优化：风筝动画可重复播放 ==========
+        // ========== 优化：风筝动画可重复播放 + 防重复点击 ==========
         kiteImg.addEventListener('click', () => {
             // 先移除动画类 → 强制刷新样式 → 重新添加，实现动画重播
             kiteImg.classList.remove('flying');
@@ -482,9 +710,22 @@
             kiteImg.classList.add('flying');
         });
 
+        kiteImg.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            kiteImg.classList.remove('flying');
+            void kiteImg.offsetWidth;
+            kiteImg.classList.add('flying');
+        }, { passive: false });
+
         shootBtn.addEventListener('click', async () => {
+            // 防重复点击
+            if (isShootLocked) return;
+            isShootLocked = true;
+            setTimeout(() => isShootLocked = false, 1000);
+
             if (!isCameraReady) {
                 alert('相机还未就绪！请先允许权限或等待加载');
+                isShootLocked = false;
                 return;
             }
 
@@ -536,12 +777,22 @@
                 previewImg.style.left = '0px';
                 previewImg.style.top = '0px';
 
+                // 切换页面
                 shootPage.style.display = 'none';
                 previewPage.style.display = 'block';
             } catch (drawErr) {
                 alert('拍摄失败：' + drawErr.message);
+                console.error('拍摄失败详情：', drawErr);
+            } finally {
+                isShootLocked = false;
             }
         });
+
+        // 绑定拍摄按钮触摸事件（移动端优先）
+        shootBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            shootBtn.click();
+        }, { passive: false });
 
         retakeBtn.addEventListener('click', () => {
             kiteImg.classList.remove('flying');
@@ -551,6 +802,11 @@
             syncVideoNativeSize();
             captureCanvas = null;
         });
+
+        retakeBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            retakeBtn.click();
+        }, { passive: false });
 
         // ========== 第三页逻辑 ==========
         function syncFinalPhotoSize() {
@@ -562,8 +818,15 @@
         }
 
         confirmBtn.addEventListener('click', () => {
+
+            // 防重复点击
+            if (isConfirmLocked) return;
+            isConfirmLocked = true;
+            setTimeout(() => isConfirmLocked = false, 500);
+
             if (!captureCanvas) {
                 alert('暂无拍摄的照片！');
+                isConfirmLocked = false;
                 return;
             }
             finalPhoto.src = captureCanvas.toDataURL('image/png');
@@ -572,10 +835,21 @@
             finalPage.style.display = 'block';
         });
 
+        confirmBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            confirmBtn.click();
+        }, { passive: false });
+
         // ========== 核心调整：固定“我的”和背景框，仅匹配“潍坊风筝”预览位置 ==========
         saveBtn.addEventListener('click', async () => {
+            // 防重复点击
+            if (isSaveLocked) return;
+            isSaveLocked = true;
+            setTimeout(() => isSaveLocked = false, 1500);
+
             if (!captureCanvas) {
                 alert('暂无可保存的照片！');
+                isSaveLocked = false;
                 return;
             }
 
@@ -595,7 +869,7 @@
                 // 2. 读取DOM信息（固定“我的”和背景框，仅调整第二行）
                 const textRect = finalText.getBoundingClientRect(); // 文字元素整体位置
                 const photoRect = finalPhotoContainer.getBoundingClientRect(); // 照片容器位置
-                
+
                 // 固定：文字相对于照片容器的偏移（背景框和“我的”位置不变）
                 const textOffsetX = textRect.left - photoRect.left;
                 const textOffsetY = textRect.top - photoRect.top;
@@ -631,9 +905,9 @@
                 // 核心调整：绘制“潍坊风筝” - 精准匹配预览中的垂直位置
                 const lineHeightPx = parseFloat(textStyle.lineHeight) || fontSize * 1.2;
                 ctx.fillText(
-                    text2, 
-                    textOffsetX + paddingLeft, 
-                    textOffsetY + paddingTop + lineHeightPx 
+                    text2,
+                    textOffsetX + paddingLeft,
+                    textOffsetY + paddingTop + lineHeightPx
                 );
 
                 // 4. 下载照片
@@ -647,20 +921,62 @@
             } catch (err) {
                 alert('保存失败：' + err.message);
                 console.error('保存失败详情：', err);
+            } finally {
+                isSaveLocked = false;
             }
         });
+
+        saveBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            saveBtn.click();
+        }, { passive: false });
 
         backBtn.addEventListener('click', () => {
             finalPage.style.display = 'none';
             previewPage.style.display = 'block';
         });
 
+        backBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            backBtn.click();
+        }, { passive: false });
+
         shareBtn.addEventListener('click', () => {
-            alert('分享功能暂未开放');
+            alert('分享功能暂未开放，敬请期待！');
         });
+
+        shareBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            shareBtn.click();
+        }, { passive: false });
 
         // 初始化相机
         window.addEventListener('load', initCamera);
+
+        // ========== 错误处理 ==========
+        // 图片加载失败处理
+        document.querySelectorAll('img').forEach(img => {
+            img.onerror = function () {
+                console.error(`图片加载失败: ${this.src}`);
+                // 风筝图片加载失败时使用默认图
+                if (this.id === 'kite-img') {
+                    this.src = 'images/2/板子.png';
+                }
+            };
+        });
+
+        // 页面离开时清理资源
+        window.addEventListener('beforeunload', () => {
+            // 停止相机流
+            if (cameraPreview.srcObject) {
+                const tracks = cameraPreview.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+            // 暂停音乐
+            if (bgMusic) {
+                bgMusic.pause();
+            }
+        });
     </script>
 </body>
 </html>
