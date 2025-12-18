@@ -27,8 +27,8 @@
             -webkit-overflow-scrolling: auto !important;
         }
 
+        /* 核心：整体布局重构，与其他页面统一垂直居中+均匀间距 */
         body {
-            overflow: hidden;
             width: 100vw;
             height: 100vh;
             background-image: url("素材最终/背景图/花纹背景.jpg");
@@ -45,9 +45,10 @@
             backface-visibility: hidden;
             -webkit-font-smoothing: antialiased;
             transition: opacity 0.3s ease;
+            padding: 15px; /* 避免内容贴边 */
         }
 
-        /* 音乐图标 */
+        /* ========== 音乐图标：与其他页面完全统一 ========== */
         .music-icon {
             position:absolute;
             top:30px;
@@ -64,7 +65,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .music-icon.playing {
+        .music-icon.active { /* 类名统一为active，与其他页面一致 */
             animation: rotateMusic 3s linear infinite;
         }
 
@@ -73,16 +74,15 @@
             to { transform: rotate(360deg); }
         }
 
-
-        /* 步骤标签：扎/糊/绘，绘放大高亮 */
+        /* 步骤标签：优化间距+尺寸，视觉更平衡 */
         .step-tabs {
             display:flex;
-            gap:10vw;
-            margin:8vh 0 3vh 0;
+            gap: 8vw; /* 减小间距，避免分散 */
+            margin: 0 0 2vh 0; /* 取消顶部margin，靠body居中 */
             align-items: center;
+            flex-shrink: 0;
         }
 
-        /* 扎/糊/绘分别使用独立.webp文件 */
         .step-tab.za {
             width:18vw;
             height:18vw;
@@ -90,10 +90,6 @@
             max-height: 80px;
             background: url("素材最终/风筝制作/资源\ 27@0.5x.webp")no-repeat center;
             background-size: contain;
-            display: flex;
-            border: none;
-            align-items: center;
-            justify-content: center;
             cursor:pointer;
             transition: all 0.3s ease;
             -webkit-tap-highlight-color: transparent;
@@ -107,9 +103,6 @@
             border-radius: 50%;
             background: url("素材最终/风筝制作/资源\ 28@0.5x.webp")no-repeat center;
             background-size: contain;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             cursor:pointer;
             transition: all 0.3s ease;
             -webkit-tap-highlight-color: transparent;
@@ -122,20 +115,19 @@
             max-height: 120px;
             background: url("素材最终/风筝制作/资源\ 32@0.5x.webp")no-repeat center;
             background-size: contain;
-            border: none;
             transition: all 0.3s ease;
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* 风筝容器：优化尺寸+居中，提升视觉占比 */
         .kite-container {
-            width: 85%;
-            height: 40vh;
+            width:85%; /* 加宽 */
+            height: 38vh; /* 降低高度，适配整体布局 */
             margin-bottom: 2vh;
             display: flex;
             position: relative;
             background-color: transparent;
-            will-change: transform;
-            backface-visibility: hidden;
+            flex-shrink: 0;
         }
 
         .kite-layer{
@@ -147,10 +139,9 @@
             height: 100%;
             object-fit: contain;
             display: none;
-            transition: opacity 0.3s ease-in-out;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
             opacity: 1;
             backface-visibility: hidden;
-            will-change: opacity, transform;
         }
 
         .kite-layer.fade-out {
@@ -163,44 +154,33 @@
             z-index: 1;
         }
 
-        #pattern-layer {
-            z-index: 2;
-        }
+        #pattern-layer { z-index: 2; }
+        #face-layer { z-index: 4; }
+        #wing-layer { z-index: 5; }
+        #body-layer { z-index: 3; }
 
-        #face-layer {
-            z-index: 4;
-        }
-
-        #wing-layer {
-            z-index: 5;
-        }
-
-        #body-layer {
-            z-index: 3;
-        }
-
-        /* 四级选项栏：纹样/脸/翅/身，使用边框.webp */
+        /* ========== 四级选项栏：放大+居中+触摸友好 ========== */
         .fourth-option-box {
-            width: 75vw;
-            max-width: 600px;
-            height: 8vw;
-            max-height: 40px;
+            width:90%; /* 加宽 */
+            height: 10vw; /* 加高 */
+            max-height: 60px;
             display: flex;
             align-items: center;
-            justify-content: space-around;
-            margin-bottom: 3vh;
+            justify-content: center; /* 彻底居中 */
+            gap: 5vw; /* 均匀间距 */
+            margin-bottom: 2vh;
             z-index: 20;
             touch-action: manipulation;
+            flex-shrink: 0;
         }
 
         .fourth-option-item {
-            /* 选项边框使用专属.webp */
             background: url("素材最终/风筝制作/资源\ 90@0.5x.webp");
             background-size: 100% 100%;
-            width: 15vw;
-            height: 6vw;
-            max-width: 60px;
-            max-height: 30px;
+            width: 18vw; /* 加宽 */
+            height: 8vw; /* 加高 */
+            max-width: 80px;
+            max-height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -208,108 +188,104 @@
             opacity: 0.7;
             transition: all 0.3s ease;
             -webkit-tap-highlight-color: transparent;
+            flex-shrink: 0;
         }
 
         .fourth-option-item.active {
             opacity: 1;
-            transform: scale(1.1); /* 初始纹样放大 */
+            transform: scale(1.1);
         }
 
         .fourth-option-text {
-            font-size: 2.5vw;
+            font-size: clamp(12px, 3vw, 16px); /* 响应式字体 */
             color: #000;
             font-weight: 400;
             -webkit-font-smoothing: antialiased;
+            text-align: center;
         }
 
-        /* 纹样选项框：使用专属.webp背景 */
+        /* ========== 选项框：与其他页面统一风格 ========== */
         .option-box {
-            width:85vw;
-            max-width: 700px;
-            height:20vw;
-            max-height: 120px;
+            width:90%; /* 加宽 */
+            height: 25vw; /* 加高 */
+            max-height: 150px;
             background: url("素材最终/风筝制作/资源 80@0.5x.webp");
             background-size: 100% 100%;
             display:flex;
             align-items: center;
-            justify-content: space-around;
-            padding:1vw 2vw;
+            justify-content: center; /* 彻底居中 */
+            gap: 5vw; /* 均匀间距 */
+            padding: 2vw;
             position: relative;
             z-index: 20;
             touch-action: manipulation;
+            margin-bottom: 3vh;
+            flex-shrink: 0;
         }
 
-        .option-box.pattern::before {
-            content: "选择喜欢的纹样";
-        }
-
-        .option-box.pattern::before {
-            content: "选择喜欢的颜色";
-        }
-
-        .option-box::before{
+        .option-box::before {
             position: absolute;
             top:-2.5vh;
             left:50%;
             transform: translateX(-50%);
-            font-size: 3.5vw;
+            font-size: clamp(12px, 3.5vw, 16px);
             color: #000;
             -webkit-font-smoothing: antialiased;
+            font-weight: 400;
         }
+
+        .option-box.pattern::before { content: "选择喜欢的纹样"; }
+        .option-box.color::before { content: "选择喜欢的颜色"; }
 
         .option-item {
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             cursor: pointer;
-            background: none;
             transition: transform 0.2s ease;
             -webkit-tap-highlight-color: transparent;
-            min-width: 15vw;
-            min-height: 15vw;
-            justify-content: center;
+            width: 20vw; /* 等宽 */
+            max-width: 90px;
+            height: 20vw;
+            max-height: 90px;
+            flex-shrink: 0;
         }
 
-        .option-item:hover {
-            opacity: 0.9;
-        }
-
-        .option-item:active {
-            transform: scale(0.95);
-        }
+        .option-item:active { transform: scale(0.95); }
 
         .option-icon {
-            width: 10vw;
-            height: 10vw;
-            max-width: 50px;
-            max-height: 50px;
+            width:14vw; /* 加大 */
+            height:14vw;
+            max-width: 70px;
+            max-height: 70px;
             object-fit: contain;
-            margin-bottom: 0.5vw;
+            margin-bottom: 1vw;
             border-radius: 50%;
             backface-visibility: hidden;
         }
 
         .option-text {
-            font-size: 3vw;
+            font-size: clamp(12px, 3vw, 16px);
             color: #000;
             font-weight: 300;
             -webkit-font-smoothing: antialiased;
+            text-align: center;
         }
 
-        /* 按钮组：上一步/去放飞（去放飞初始禁用） */
+        /* 按钮组：与其他页面统一风格 */
         .btn-group {
             display: flex;
-            gap: 25vw;
-            margin-top: 4vh;
+            gap: 20vw; /* 减小间距 */
             z-index: 20;
+            flex-shrink: 0;
         }
 
         .page-btn {
-            padding: 1.2vw 3.5vw;
-            /* 按钮背景使用.webp */
+            padding: 2vw 5vw;
             background: url("素材最终/风筝制作/资源 89@0.5x.webp");
             background-size: 100% 100%;
-            font-size: 3vw;
+            font-size: clamp(12px, 3.5vw, 16px);
             color: #000;
             cursor: pointer;
             border: none;
@@ -317,12 +293,11 @@
             -webkit-tap-highlight-color: transparent;
             opacity: 0.5;
             pointer-events: none;
-            width: 25vw;
-            max-height: 35px;
+            min-width: 80px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            will-change: opacity;
         }
 
         .page-btn.enable {
@@ -330,57 +305,57 @@
             pointer-events: all;
         }
 
-        .page-btn.enable:active {
-            transform: scale(0.95);
-        }
+        .page-btn.enable:active { transform: scale(0.95); }
 
+        /* 小屏适配（手机） */
         @media screen and (max-width: 375px) {
-            .step-tabs { gap: 6vw; }
-            .kite-container { height: 40vh; }
-            .fourth-option-box { height: 12vw; }
-            .fourth-option-item {
-                width: 20vw;
-                height: 10vw;
-            }
-            .option-box { height: 25vw; }
-            .btn-group { gap: 18vw; }
-            .page-btn {
-                width: 30vw;
-                height: 10vw;
-                font-size: 4vw;
-            }
             .music-icon {
                 width:28px;
                 height:28px;
                 top:20px;
                 right:20px;
             }
-            .option-text { font-size: 4vw; }
-            .fourth-option-text { font-size: 3vw; }
-        }
-
-        /* 平板适配 */
-        @media screen and (min-width: 768px) {
-            .option-text, .fourth-option-text, .option-box::before, .page-btn {
-                font-size: 16px;
-            }
-            .option-icon {
-                width: 50px;
-                height: 50px;
-            }
-            .option-item {
-                min-width: 80px;
-                min-height: 80px;
+            .kite-container { height: 35vh; }
+            .fourth-option-box {
+                height: 12vw;
+                gap: 3vw;
             }
             .fourth-option-item {
-                width: 80px;
-                height: 40px;
+                width: 20vw;
+                height: 10vw;
             }
+            .option-box { height: 30vw; }
+            .option-icon { width:12vw; height:12vw; }
+            .btn-group { gap: 15vw; }
+            .page-btn {
+                min-width: 90px;
+                height: 45px;
+            }
+        }
+
+        /* 大屏适配（平板/电脑） */
+        @media screen and (min-width: 768px) {
             .step-tabs { gap: 50px; }
+            .fourth-option-box {
+                height: 60px;
+                gap: 30px;
+            }
+            .fourth-option-item {
+                width: 90px;
+                height: 45px;
+            }
+            .option-icon {
+                width: 70px;
+                height: 70px;
+            }
+            .option-item {
+                width: 100px;
+                height: 100px;
+            }
             .btn-group { gap: 120px; }
             .page-btn {
-                width: 120px;
-                height: 40px;
+                min-width: 100px;
+                height: 50px;
             }
             .kite-container { height: 45vh; }
         }
@@ -389,6 +364,7 @@
 <body>
     <audio id="bgMusic" loop preload="metadata">
         <source src="素材最终/music.m4a" type="audio/mp4">
+        <source src="素材最终/music.mp3" type="audio/mpeg"> <!-- 兼容备用 -->
     </audio>
     <div class="music-icon" id="musicIcon"></div>
 
@@ -453,7 +429,6 @@
                 e.stopPropagation();
             }, { passive: false });
 
-            // 兜底：禁用PC端鼠标滚轮
             document.addEventListener('wheel', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -469,9 +444,8 @@
             const stepOrder = ['pattern', 'face', 'wing', 'body'];
             let currentMaxStep = 0;
 
-            // 2. 资源路径映射表：修复原路径错误，统一格式
+            // 2. 资源路径映射表（保留原逻辑，优化容错）
             const resourceMap = {
-                // 燕子
                 swallow: {
                     base: "素材最终/风筝制作/步骤图/燕 宣纸.PNG",
                     bat: {
@@ -493,7 +467,6 @@
                         body: { qihei: "素材最终/风筝/椋庣瓭/IMG_2629.PNG", jingbai: "素材最终/风筝/椋庣瓭/IMG_2630.PNG", gaose: "素材最终/风筝/椋庣瓭/IMG_2631.PNG" }
                     }
                 },
-                // 蝴蝶
                 butterfly: {
                     base: "素材最终/风筝制作/步骤图/蝶 宣纸.PNG",
                     bat: {
@@ -515,7 +488,6 @@
                         body: { qihei: "素材最终/风筝/椋庣瓭/IMG_2673.PNG", jingbai: "素材最终/风筝/椋庣瓭/IMG_2671.PNG", gaose: "素材最终/风筝/椋庣瓭/IMG_2672.PNG" }
                     }
                 },
-                // 鱼
                 fish: {
                     base: "素材最终/风筝制作/步骤图/鱼 宣纸.PNG",
                     bat: {
@@ -544,7 +516,7 @@
             baseLayer.src = resourceMap[kiteType]?.base || '';
             baseLayer.onerror = () => console.warn(`底图加载失败: ${resourceMap[kiteType].base}`);
 
-            // 预加载图片
+            // 预加载图片（优化加载体验）
             const preloadImages = () => {
                 const allLayers = ['pattern', 'face', 'wing', 'body'];
                 const patterns = ['bat', 'lotus', 'lion'];
@@ -583,13 +555,14 @@
                     img.onerror = () => console.warn(`选项图标预加载失败: ${src}`);
                 });
             };
-            setTimeout(preloadImages, 300); // 延迟预加载，不阻塞首屏
+            setTimeout(preloadImages, 300);
 
-            // ========== 音乐播放初始化（解决移动端限制） ==========
+            // ========== 音乐逻辑：与其他页面完全统一 ==========
             const bgMusic = document.getElementById('bgMusic');
             const musicIcon = document.getElementById('musicIcon');
             let isMusicPlaying = false;
 
+            // 首次触摸初始化音频
             function initAudio() {
                 bgMusic.load();
                 bgMusic.muted = true;
@@ -598,11 +571,9 @@
                     bgMusic.muted = false;
                 }).catch(err => console.log("音频预加载：", err));
             }
-
-            // 首次触摸初始化音频
             document.addEventListener('touchstart', initAudio, { once: true });
 
-            // 音乐控制逻辑
+            // 音乐控制逻辑（类名统一为active）
             function handleMusicClick(e) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -610,26 +581,24 @@
                 try {
                     if (isMusicPlaying) {
                         bgMusic.pause();
-                        musicIcon.classList.remove('playing');
+                        musicIcon.classList.remove('active');
                     } else {
                         bgMusic.play().catch(err => {
                             console.error('音乐播放失败:', err);
                             bgMusic.load();
                             setTimeout(() => bgMusic.play(), 100);
                         });
-                        musicIcon.classList.add('playing');
+                        musicIcon.classList.add('active');
                     }
                     isMusicPlaying = !isMusicPlaying;
                 } catch (e) {
                     console.error('音乐控制异常:', e);
                 }
             }
-
-            // 绑定音乐控制事件
             musicIcon.addEventListener('touchstart', handleMusicClick, { passive: false });
             musicIcon.addEventListener('click', handleMusicClick);
 
-            // 4. 四级选项切换逻辑（修复步骤锁逻辑）
+            // 4. 四级选项切换逻辑（优化步骤锁提示）
             const fourthOptionItems = document.querySelectorAll('.fourth-option-item');
             const optionBox = document.getElementById('optionBox');
             
@@ -646,6 +615,7 @@
                 const partType = item.getAttribute('data-type');
                 const currentStepIndex = stepOrder.indexOf(partType);
 
+                // 步骤锁逻辑：必须按顺序选择
                 if (currentStepIndex > currentMaxStep && currentStepIndex !== 0) {
                     const stepNames = { pattern: '纹样', face: '面', wing: '翅', body: '身' };
                     const prevStepName = stepNames[stepOrder[currentMaxStep]];
@@ -653,9 +623,11 @@
                     return;
                 }
 
+                // 切换激活状态
                 fourthOptionItems.forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
 
+                // 渲染对应选项
                 optionBox.innerHTML = '';
                 optionBox.classList.remove('pattern', 'color');
 
@@ -675,7 +647,6 @@
                 
                 bindOptionClick();
             }
-
 
             // 5. 渲染纹样选项
             function renderPatternOptions() {
@@ -735,7 +706,7 @@
                 optionBox.innerHTML = colorHtml;
             }
 
-            // 7. 选型点击核心逻辑（优化图层切换动画）
+            // 7. 选型点击核心逻辑（优化防重复点击+动画）
             function bindOptionClick() {
                 const optionItems = document.querySelectorAll('.option-item');
                 optionItems.forEach(item => {
@@ -747,7 +718,6 @@
             // 防重复点击锁
             let isOptionClickLocked = false;
             function handleOptionClick(e) {
-                // 防重复点击
                 if (isOptionClickLocked) return;
                 isOptionClickLocked = true;
                 setTimeout(() => isOptionClickLocked = false, 300);
@@ -770,6 +740,7 @@
                     return;
                 }
 
+                // 纹样选择逻辑
                 if (partType === 'pattern') {
                     selectedPattern = selectValue;
                     
@@ -777,11 +748,10 @@
                     setTimeout(() => {
                         targetLayer.src = resourceMap[kiteType][selectValue]?.pattern || '';
                         targetLayer.style.display = 'block';
-                        setTimeout(() => {
-                            targetLayer.classList.remove('fade-out');
-                        }, 50);
+                        setTimeout(() => targetLayer.classList.remove('fade-out'), 50);
                     }, 300);
 
+                    // 清空其他图层
                     ['face', 'wing', 'body'].forEach(type => {
                         const layer = document.getElementById(`${type}-layer`);
                         layer.src = '';
@@ -794,19 +764,17 @@
                     selectedLayers.add('pattern');
                     document.getElementById('flyBtn').classList.remove('enable');
                     document.getElementById('flyBtn').disabled = true;
-                    console.log(`✅ 选中纹样:${selectValue}，解锁步骤:面`);
                     isOptionClickLocked = false;
                     return;
                 }
 
+                // 颜色选择逻辑
                 targetLayer.classList.add('fade-out');
                 setTimeout(() => {
                     const colorSrc = resourceMap[kiteType][selectedPattern]?.[partType]?.[selectValue] || '';
                     targetLayer.src = colorSrc;
                     targetLayer.style.display = 'block';
-                    setTimeout(() => {
-                        targetLayer.classList.remove('fade-out');
-                    }, 50);
+                    setTimeout(() => targetLayer.classList.remove('fade-out'), 50);
                 }, 300);
 
                 // 更新步骤状态
@@ -816,20 +784,18 @@
                 }
 
                 selectedLayers.add(partType);
-                console.log(`✅ 选中${partType}${selectValue}，已选图层：${Array.from(selectedLayers)}`);
 
                 // 所有图层选择完成，解锁去放飞
                 if (selectedLayers.size === 4) {
                     document.getElementById('flyBtn').classList.add('enable');
                     document.getElementById('flyBtn').disabled = false;
-                    console.log('✅ 所有图层选择完成，解锁「去放飞」');
                 }
 
                 isOptionClickLocked = false;
             }
             bindOptionClick();
 
-            // 8. 页面跳转逻辑（渐变过渡，与第五/六页统一）
+            // 8. 页面跳转逻辑（与其他页面统一渐变过渡）
             function handlePrevClick(e) {
                 e.stopPropagation();
                 if (e.type === 'touchstart') e.preventDefault();
@@ -839,19 +805,17 @@
                     window.location.href = `page6.html?type=${kiteType}`;
                 }, 300);
             }
-
-            // 绑定上一步按钮
             document.getElementById('prevBtn').addEventListener('touchstart', handlePrevClick, { passive: false });
             document.getElementById('prevBtn').addEventListener('click', handlePrevClick);
 
-            // 9. 改造「去放飞」按钮：先截图，再跳转（优化截图兼容）
+            // 9. 去放飞按钮：优化截图稳定性+容错
             async function handleFlyClick(e) {
                 e.stopPropagation();
                 if (e.type === 'touchstart') e.preventDefault();
 
                 if (selectedLayers.size < 4) return;
 
-                // 隐藏非风筝元素（避免截图包含按钮/选项）
+                // 隐藏非风筝元素
                 const hideElements = [
                     document.querySelector('.step-tabs'),
                     document.querySelector('.fourth-option-box'),
@@ -861,42 +825,39 @@
                 ];
                 hideElements.forEach(el => el.style.display = 'none');
 
-                // 使用 html2canvas 截图风筝容器（优化配置）
+                // 截图逻辑（优化配置）
                 try {
                     const captureContainer = document.getElementById('capture-container');
                     const canvas = await html2canvas(captureContainer, {
-                        useCORS: true, // 解决跨域图片问题
-                        backgroundColor: null, // 背景透明
-                        scale: window.devicePixelRatio || 1, // 高清截图
-                        logging: false, // 关闭日志
-                        allowTaint: true, // 允许跨域图片
-                        removeContainer: true // 清理临时容器
+                        useCORS: true,
+                        backgroundColor: null,
+                        scale: window.devicePixelRatio || 1,
+                        logging: false,
+                        allowTaint: true,
+                        removeContainer: true,
+                        timeout: 5000 // 增加超时时间
                     });
-                    // 转为 Base64 编码（PNG 格式）
                     const kiteBase64 = canvas.toDataURL('image/png');
 
                     // 恢复隐藏元素
                     hideElements.forEach(el => el.style.display = '');
 
-                    // 关键：将Base64和风筝类型存入localStorage（替代URL传参）
+                    // 存储截图和风筝类型
                     localStorage.setItem('diyKiteBase64', kiteBase64);
                     localStorage.setItem('diyKiteType', kiteType);
 
-                    // 页面淡出 + 跳转（无URL参数）
+                    // 页面跳转
                     document.body.style.opacity = 0;
                     setTimeout(() => {
-                        window.location.href = 'page8.html'; // 仅跳转，不传参
+                        window.location.href = 'page8.html';
                     }, 300);
 
                 } catch (err) {
-                    // 出错时恢复元素
                     hideElements.forEach(el => el.style.display = '');
                     console.error('截图失败:', err);
                     alert('风筝生成失败，请重试！');
                 }
             }
-
-            // 绑定去放飞按钮
             document.getElementById('flyBtn').addEventListener('touchstart', handleFlyClick, { passive: false });
             document.getElementById('flyBtn').addEventListener('click', handleFlyClick);
 
@@ -905,15 +866,13 @@
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden && isMusicPlaying) {
                     bgMusic.pause();
-                    musicIcon.classList.remove('playing');
+                    musicIcon.classList.remove('active');
                     isMusicPlaying = false;
                 }
             });
 
             // 页面离开时暂停音乐
-            window.addEventListener('beforeunload', () => {
-                bgMusic.pause();
-            });
+            window.addEventListener('beforeunload', () => bgMusic.pause());
 
             // 图片加载错误处理
             document.querySelectorAll('.kite-layer').forEach(img => {

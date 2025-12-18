@@ -23,8 +23,8 @@
             -webkit-overflow-scrolling: auto !important;
         }
 
+        /* 核心：整体布局重构，垂直居中+均匀间距 */
         body {
-            overflow: hidden;
             width: 100vw;
             height: 100vh;
             background-image: url("素材最终/背景图/花纹背景.jpg");
@@ -41,9 +41,10 @@
             backface-visibility: hidden;
             -webkit-font-smoothing: antialiased;
             transition: opacity 0.3s ease;
+            padding: 15px; /* 上下左右留白，避免内容贴边 */
         }
 
-        /* 音乐图标 - 移动端适配尺寸 */
+        /* ========== 音乐图标：与其他页面完全统一 ========== */
         .music-icon {
             position:absolute;
             top:30px;
@@ -60,7 +61,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .music-icon.playing{
+        .music-icon.active{ /* 类名统一为active，和其他页面一致 */
             animation: rotateMusic 3s linear infinite;
         }
 
@@ -69,12 +70,13 @@
             to { transform: rotate(360deg); }
         }
 
-        /* 步骤标签：扎/糊/绘，糊高亮放大 - 移动端适配 */
+        /* 步骤标签：优化间距+尺寸，视觉更平衡 */
         .step-tabs {
             display:flex;
-            gap:10vw;
-            margin:8vh 0 3vh 0;
+            gap: 8vw; /* 减小间距，避免过于分散 */
+            margin: 0 0 2vh 0; /* 取消顶部margin，靠body居中 */
             align-items: center;
+            flex-shrink: 0;
         }
 
         .step-tab.hu {
@@ -85,9 +87,6 @@
             border-radius: 50%;
             background: url("素材最终/风筝制作/资源 31@0.5x.webp")no-repeat center;
             background-size: contain;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             cursor:pointer;
             transition: all 0.3s ease;
             -webkit-tap-highlight-color: transparent;
@@ -100,10 +99,6 @@
             max-height: 80px;
             background: url("素材最终/风筝制作/资源\ 27@0.5x.webp")no-repeat center;
             background-size: contain;
-            display: flex;
-            border: none;
-            align-items: center;
-            justify-content: center;
             cursor:pointer;
             transition: all 0.3s;
         }
@@ -116,10 +111,6 @@
             border-radius: 50%;
             background: url("素材最终/风筝制作/资源\ 29@0.5x.webp")no-repeat center;
             background-size: contain;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
             cursor:pointer;
             transition: all 0.3s ease;
             -webkit-tap-highlight-color: transparent;
@@ -129,19 +120,16 @@
             background-color: transparent;
         }
 
-        /* 骨架/糊纸展示容器 - 移动端适配高度 */
+        /* 骨架容器：优化高度+间距，适配整体布局 */
         .skeleton-container {
-            width:80%;
-            height:45vh;
-            margin-bottom: 6vh;
+            width:85%; /* 加宽，提升视觉占比 */
+            height: 40vh; /* 降低高度，避免挤压其他元素 */
+            margin-bottom: 3vh; /* 减小底部间距 */
             display:flex;
             justify-content: center;
             align-items: center;
-            overflow: visible;
             position: relative;
-            align-items: center;
-            will-change: transform;
-            backface-visibility: hidden;
+            flex-shrink: 0;
         }
 
         .skeleton-img {
@@ -154,11 +142,9 @@
             left:50%;
             top:50%;
             transform: translate(-50%,-50%);
-            /* 图片切换渐变动画 */
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
             opacity: 1;
             backface-visibility: hidden;
-            will-change: opacity, transform;
         }
 
         .skeleton-img.fade-out{
@@ -170,21 +156,22 @@
             display: block;
         }
 
-        /* 选项框：浆糊/纱布/宣纸 - 移动端适配高度和内边距 */
+        /* ========== 选项框：放大+居中+触摸友好 ========== */
         .option-box {
-            width:85vw;
-            max-width: 700px;
-            height:20vw;
-            max-height: 120px;
+            width:90%; /* 加宽 */
+            height: 25vw; /* 加高，提升点击区域 */
+            max-height: 140px;
             background: url("素材最终/风筝制作/资源\ 80@0.5x.webp");
             background-size: 100% 100%;
             display:flex;
             align-items: center;
-            justify-content: space-around;
-            padding:1vw 2vw;
+            justify-content: center; /* 彻底居中 */
+            padding: 2vw;
             position: relative;
             z-index: 20;
             touch-action: manipulation;
+            margin-bottom: 4vh; /* 底部间距，与按钮分隔 */
+            flex-shrink: 0;
         }
 
         .option-box::before {
@@ -193,23 +180,27 @@
             top: -2.5vh;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 3.5vw;
+            font-size: clamp(12px, 3.5vw, 16px); /* 响应式字体 */
             color: #000;
             -webkit-font-smoothing: antialiased;
+            font-weight: 400;
         }
 
         .option-item {
             display:flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             cursor: pointer;
             opacity: 0.7;
             transition: all 0.3s ease;
             pointer-events: none;
-            background: none;
             -webkit-tap-highlight-color: transparent;
-            padding: 5px;
-            margin: 0 5px;
+            padding: 8px;
+            margin: 0 8px; /* 均匀间距 */
+            width: 20vw; /* 等宽分布 */
+            max-width: 80px; /* 限制最大宽度 */
+            flex-shrink: 0;
         }
 
         .option-item.available {
@@ -227,37 +218,38 @@
             pointer-events: none;
         }
 
-        /* 选项图标 - 移动端适配尺寸 */
+        /* 选项图标：放大+防溢出 */
         .option-icon {
-            width:12vw;
-            height:12vw;
-            max-width: 60px;
-            max-height: 60px;
+            width:14vw; /* 加大尺寸 */
+            height:14vw;
+            max-width: 70px;
+            max-height: 70px;
             object-fit: contain;
-            margin-bottom: 0.5vw;
+            margin-bottom: 1vw;
             backface-visibility: hidden;
         }
 
         .option-text {
-            font-size: 3.5vw;
+            font-size: clamp(12px, 3.5vw, 16px); /* 响应式字体 */
             color:#000;
             font-weight: 300;
             -webkit-font-smoothing: antialiased;
+            text-align: center;
         }
 
-        /* 按钮组 - 移动端适配间距和尺寸 */
+        /* 按钮组：优化间距+尺寸 */
         .btn-group {
             display:flex;
-            gap:25vw;
-            margin-top: 5vh;
+            gap: 20vw; /* 减小间距，避免过于分散 */
             z-index: 20;
+            flex-shrink: 0;
         }
 
         .page-btn {
-            padding: 1.5vw 4vw;
+            padding: 2vw 5vw;
             background: url("素材最终/风筝制作/资源 89@0.5x.webp");
             background-size: 100% 100%;
-            font-size: 3.5vw;
+            font-size: clamp(12px, 3.5vw, 16px); /* 响应式字体 */
             color: #000;
             cursor: pointer;
             border:none;
@@ -265,7 +257,8 @@
             -webkit-tap-highlight-color: transparent;
             opacity: 0.5;
             pointer-events: none;
-            will-change: opacity;
+            min-width: 80px; /* 最小宽度，保证点击区域 */
+            height: 40px; /* 固定高度 */
         }
 
         .page-btn.enable {
@@ -277,43 +270,51 @@
             transform: scale(0.95);
         }
 
-        /* 移动端专属适配 - 小屏优化 */
+        /* 小屏适配（手机） */
         @media screen and (max-width:375px){
-            .option-box{
-                height:25vw;
-            }
-            .btn-group{
-                gap:18vw;
-            }
             .music-icon{
                 width:28px;
                 height:28px;
                 top:20px;
                 right:20px;
             }
-
+            .option-box{
+                height: 30vw; /* 进一步加高 */
+                margin-bottom: 3vh;
+            }
             .skeleton-container{
-                height:40vh; /* 降低高度，适配小屏 */
-                margin-bottom: 4vh;
+                height: 38vh;
+            }
+            .btn-group{
+                gap: 15vw;
+            }
+            .option-icon{
+                width:12vw; /* 小屏适度减小图标 */
+                height:12vw;
             }
         }
 
+        /* 大屏适配（平板/电脑） */
         @media screen and (min-width:768px){
-            .option-text, .option-box::before, .page-btn{
-                font-size: 16px;
+            .step-tabs{
+                gap: 50px;
+            }
+            .option-box{
+                max-height: 160px;
             }
             .option-icon{
-                width:50px;
-                height:50px;
-            }
-            .step-tabs{
-                gap:50px;
+                max-width: 80px;
+                max-height: 80px;
             }
             .btn-group{
-                gap:120px;
+                gap: 120px;
+            }
+            .page-btn{
+                min-width: 100px;
+                height: 45px;
             }
             .skeleton-container{
-                height:50vh;
+                height: 45vh;
             }
         }
     </style>
@@ -321,6 +322,7 @@
 <body>
     <audio id="bgMusic" loop preload="metadata">
         <source src="素材最终/music.m4a" type="audio/mp4">
+        <source src="素材最终/music.mp3" type="audio/mpeg"> <!-- 兼容备用 -->
     </audio>
     <div class="music-icon" id="musicIcon"></div>
 
@@ -404,7 +406,7 @@
             let currentStep = 0;
             const totalSteps = 3;
             const clickedSteps = new Set();
-            let isMusicPlaying = false;
+            let isMusicPlaying = false; // 音乐状态：与其他页面统一
 
             // ========== 预加载所有图片，避免点击卡顿 ==========
             const preloadImages = () => {
@@ -437,7 +439,7 @@
                 finalSkeleton.src = skeletonSrcMap[kiteType] || skeletonSrcMap.swallow;
             }
 
-            // ========== 音乐播放初始化（解决移动端限制） ==========
+            // ========== 音乐播放初始化（与其他页面完全统一） ==========
             function initAudio() {
                 bgMusic.load();
                 bgMusic.muted = true;
@@ -447,7 +449,7 @@
                 }).catch(err => console.log("音频预加载：", err));
             }
 
-            // ========== 选项点击核心逻辑：优化流畅度，与第五页交互逻辑一致 ==========
+            // ========== 选项点击核心逻辑：优化流畅度 ==========
             function handleOptionClick(e) {
                 e.stopPropagation();
                 if (e.type === 'touchstart') e.preventDefault();
@@ -545,7 +547,7 @@
             nextBtn.addEventListener('touchstart', handleNextClick, { passive: false });
             nextBtn.addEventListener('click', handleNextClick);
 
-            // ========== 音乐控制：与第五页一致的逻辑 ==========
+            // ========== 音乐控制：与其他页面完全统一的逻辑 ==========
             function handleMusicClick(e) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -553,7 +555,7 @@
                 try {
                     if (isMusicPlaying) {
                         bgMusic.pause();
-                        musicIcon.classList.remove('playing');
+                        musicIcon.classList.remove('active'); // 类名统一为active
                     } else {
                         // 移动端兼容：用户交互触发播放
                         bgMusic.play().catch(err => {
@@ -561,7 +563,7 @@
                             bgMusic.load();
                             setTimeout(() => bgMusic.play(), 100);
                         });
-                        musicIcon.classList.add('playing');
+                        musicIcon.classList.add('active'); // 类名统一为active
                     }
                     isMusicPlaying = !isMusicPlaying;
                 } catch (e) {
@@ -581,7 +583,7 @@
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden && isMusicPlaying) {
                     bgMusic.pause();
-                    musicIcon.classList.remove('playing');
+                    musicIcon.classList.remove('active'); // 类名统一
                     isMusicPlaying = false;
                 }
             });
